@@ -3,817 +3,994 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOBILE INDEXER v1.0</title>
+    <title>Master IQ (Web)</title>
+    
     <style>
+        /* --- 1. CSS Variables and Themes --- */
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-size: 14px;
+            
+            /* Light Theme */
+            --bg-main: #f0f0f0;
+            --bg-input: #ffffff;
+            --bg-input-focus: #ffffff;
+            --bg-header: #e1e1e1;
+            --bg-btn: #e1e1e1;
+            --bg-btn-hover: #cacaca;
+            --bg-btn-accent: #0078d7;
+            --bg-btn-accent-hover: #005a9e;
+            --bg-row-hover: #f5f5f5;
+            --bg-row-selected: #0078d7;
+
+            --text-main: #000000;
+            --text-placeholder: #666666;
+            --text-btn: #000000;
+            --text-btn-accent: #ffffff;
+            --text-accent: #005a9e;
+            --text-row-selected: #ffffff;
+            
+            --border-main: #cccccc;
+            --border-focus: #0078d7;
+            --border-grid: #d0d0d0;
+            --border-btn-accent: #0078d7;
+        }
+
+        body.dark-mode {
+            /* Dark Theme (from PyQt app) */
+            --bg-main: #1e1e23;
+            --bg-input: #25252a;
+            --bg-input-focus: #1e1e23;
+            --bg-header: #2a2a30;
+            --bg-btn: #3c3c46;
+            --bg-btn-hover: #4a4a52;
+            --bg-btn-accent: #6496ff;
+            --bg-btn-accent-hover: #7aa5ff;
+            --bg-row-hover: #2a2a30;
+            --bg-row-selected: #6496ff;
+
+            --text-main: #dcdce1;
+            --text-placeholder: #888888;
+            --text-btn: #dcdce1;
+            --text-btn-accent: #ffffff;
+            --text-accent: #6496ff;
+            --text-row-selected: #ffffff;
+            
+            --border-main: #3c3c46;
+            --border-focus: #6496ff;
+            --border-grid: #3c3c46;
+            --border-btn-accent: #6496ff;
+        }
+
+        /* --- 2. Basic Setup --- */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
-
+        
         body {
-            font-family: 'Courier New', monospace;
-            transition: all 0.3s ease;
-        }
-
-        /* Light Theme */
-        body.light {
-            background: #ffffff;
-            color: #333333;
-        }
-
-        body.light .container {
-            background: #f5f5f5;
-            border: 2px solid #cccccc;
-        }
-
-        body.light input, body.light textarea, body.light button, body.light table {
-            background: #ffffff;
-            color: #333333;
-            border-color: #cccccc;
-        }
-
-        body.light button:hover {
-            background: #e0e0e0;
-        }
-
-        body.light th {
-            background: #e0e0e0;
-        }
-
-        body.light tr:hover {
-            background: #f0f0f0;
-        }
-
-        /* Dark Theme - Hacker Aesthetic */
-        body.dark {
-            background: #000000;
-            color: #00ff00;
-        }
-
-        body.dark .container {
-            background: #0a0a0a;
-            border: 2px solid #00ff00;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-        }
-
-        body.dark .header {
-            background: linear-gradient(90deg, #001a00, #003300, #001a00);
-            border-bottom: 2px solid #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-        }
-
-        body.dark input, body.dark textarea {
-            background: #0a0a0a;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        body.dark input:focus, body.dark textarea:focus {
-            outline: none;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            border-color: #00ffff;
-        }
-
-        body.dark button {
-            background: #0a0a0a;
-            color: #ff0000;
-            border: 1px solid #00ff00;
-            text-shadow: 0 0 5px #ff0000;
-        }
-
-        body.dark button:hover {
-            background: #1a1a1a;
-            border-color: #00ffff;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-        }
-
-        body.dark table {
-            border: 1px solid #00ff00;
-        }
-
-        body.dark th {
-            background: #001a00;
-            color: #ff0000;
-            text-shadow: 0 0 5px #ff0000;
-            border: 1px solid #00ff00;
-        }
-
-        body.dark td {
-            border: 1px solid #003300;
-            color: #00ff00;
-        }
-
-        body.dark tr:hover {
-            background: #001a00;
-        }
-
-        body.dark .index-name {
-            color: #00ffff;
-            text-shadow: 0 0 10px #00ffff;
-        }
-
-        body.dark .item-count {
-            color: #ff00ff;
-            text-shadow: 0 0 8px #ff00ff;
-        }
-
-        /* Layout */
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .header {
-            padding: 15px;
-            text-align: center;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            letter-spacing: 3px;
-        }
-
-        .theme-toggle {
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .input-section {
-            background: inherit;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .form-row label {
-            min-width: 100px;
-            font-weight: bold;
-        }
-
-        .form-row input, .form-row textarea {
-            flex: 1;
-            padding: 8px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .form-row.split input:first-of-type {
-            flex: 1;
-        }
-
-        .form-row.split input:last-of-type {
-            flex: 4;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 60px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .index-info {
+            font-family: var(--font-family);
+            font-size: var(--font-size);
+            background-color: var(--bg-main);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            margin: 15px 0;
+            height: 100vh;
+            padding: 1rem;
         }
 
-        .index-name {
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        button {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .button-row {
-            display: flex;
-            gap: 10px;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .search-box {
+        #app-container {
             width: 100%;
-            margin-bottom: 15px;
+            max-width: 1000px;
+            height: 95vh;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-main);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 3. Menu Bar --- */
+        nav.menu-bar {
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-main);
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .menu-dropdown {
+            position: relative;
+        }
+        
+        .menu-dropdown > button {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .menu-dropdown > button:hover {
+            background-color: var(--bg-btn-hover);
+        }
+
+        .menu-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-main);
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            min-width: 200px;
+            z-index: 100;
+        }
+        
+        .menu-content button {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 8px 12px;
+            text-align: left;
+            cursor: pointer;
+        }
+        .menu-content button:hover {
+            background-color: var(--bg-row-hover);
+        }
+        
+        .menu-dropdown:focus-within .menu-content {
+            display: block;
+        }
+
+        /* --- 4. Input Section --- */
+        #input-section {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-main);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #location-input-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #description-input-row,
+        #notes-input-row {
+            grid-column: 1 / -1;
+            grid-template-columns: auto 1fr;
+            align-items: start;
+        }
+
+        #notes-input-row {
+            align-items: center;
+        }
+
+        label {
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-main);
+            border-radius: 4px;
+            font-size: var(--font-size);
+            font-family: var(--font-family);
+        }
+        
+        textarea {
+            resize: vertical;
+        }
+
+        #description-input, #notes-input {
+            height: 60px; /* Match PyQt app */
+        }
+        
+        #notes-input {
+            height: 42px;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 2px var(--border-focus);
+        }
+        
+        ::placeholder {
+            color: var(--text-placeholder);
+            font-style: italic;
+        }
+
+        #location-toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #add-btn {
+            grid-column: 1 / -1;
+        }
+
+        /* --- 5. Search Section --- */
+        #search-section {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-main);
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- 6. Table Section --- */
+        #table-section {
+            flex-grow: 1;
+            overflow: auto; /* This makes the table scrollable */
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            table-layout: fixed;
         }
 
-        th, td {
-            padding: 10px;
-            text-align: left;
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         th {
-            font-weight: bold;
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-main);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
             cursor: pointer;
             user-select: none;
         }
+        
+        th.sort-asc::after { content: ' \25B2'; } /* Up triangle */
+        th.sort-desc::after { content: ' \25BC'; } /* Down triangle */
 
-        th:hover {
-            opacity: 0.8;
+        th:nth-child(1) { width: 30%; }
+        th:nth-child(2) { width: 30%; }
+        th:nth-child(3) { width: 40%; }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border-grid);
         }
 
-        tr.selected {
-            opacity: 0.6;
+        tbody tr:hover {
+            background-color: var(--bg-row-hover);
+        }
+        
+        tbody tr.selected {
+            background-color: var(--bg-row-selected) !important;
+            color: var(--text-row-selected);
         }
 
-        .bottom-bar {
+        td {
+            padding: 10px;
+            vertical-align: top;
+            white-space: pre-wrap; /* Allows multiline */
+            word-break: break-word;
+            border-right: 1px solid var(--border-grid);
+        }
+        
+        td:last-child {
+            border-right: none;
+        }
+        
+        td[contenteditable="true"]:focus {
+            outline: 1px solid var(--border-focus);
+            background-color: var(--bg-input-focus);
+        }
+
+        /* --- 7. Bottom Bar --- */
+        #bottom-bar {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border-main);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background-color: var(--bg-main);
         }
 
-        .item-count {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal.active {
+        #bottom-bar-left {
             display: flex;
+            gap: 8px;
         }
 
-        .modal-content {
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
+        #status-bar {
+            font-size: 0.9rem;
+            color: var(--text-accent);
+        }
+        
+        #item-count {
+            font-weight: 700;
+            font-size: 1rem;
         }
 
-        body.dark .modal-content {
-            background: #0a0a0a;
-            border: 2px solid #00ff00;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+        /* --- 8. Buttons --- */
+        button {
+            padding: 8px 14px;
+            background-color: var(--bg-btn);
+            color: var(--text-btn);
+            border: 1px solid var(--border-main);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--font-size);
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background-color: var(--bg-btn-hover);
         }
 
-        body.light .modal-content {
-            background: #ffffff;
-            border: 2px solid #cccccc;
+        #add-btn {
+            background-color: var(--bg-btn-accent);
+            color: var(--text-btn-accent);
+            border-color: var(--border-btn-accent);
+            font-weight: 600;
+        }
+        
+        #add-btn:hover {
+            background-color: var(--bg-btn-accent-hover);
         }
 
-        .modal-content h2 {
-            margin-bottom: 20px;
-        }
-
-        .modal-content textarea {
-            width: 100%;
-            min-height: 300px;
-            margin-bottom: 15px;
-            font-size: 12px;
-        }
-
-        .hidden {
+        /* --- 9. Utility Classes --- */
+        body.location-disabled .location-column,
+        body.location-disabled #location-input-row {
             display: none;
         }
+        
+        /* Adjust column widths when location is disabled */
+        body.location-disabled th:nth-child(1) { width: 40%; }
+        body.location-disabled th:nth-child(3) { width: 60%; }
+
     </style>
 </head>
-<body class="light">
-    <div class="container">
-        <div class="header">
-            <h1>MOBILE INDEXER v1.0</h1>
-            <button class="theme-toggle" onclick="toggleTheme()">◐ TOGGLE THEME</button>
-        </div>
+<body>
 
-        <div class="input-section">
-            <div class="form-row">
-                <label>Subject:</label>
-                <input type="text" id="subject" placeholder="Enter subject...">
+    <div id="app-container">
+
+        <nav class="menu-bar">
+            <div class="menu-dropdown" tabindex="0">
+                <button>File</button>
+                <div class="menu-content">
+                    <button id="menu-load">Load (JSON/CSV)...</button>
+                    <button id="menu-save-json">Save as JSON...</button>
+                    <button id="menu-export-csv">Export as CSV...</button>
+                </div>
+            </div>
+            <div class="menu-dropdown" tabindex="0">
+                <button>Options</button>
+                <div class="menu-content">
+                    <button id="menu-toggle-theme">Toggle Theme</button>
+                    <button id="menu-toggle-location">Toggle Location Field</button>
+                </div>
+            </div>
+        </nav>
+        <input type="file" id="load-file-input" accept=".json,.csv" style="display:none;">
+
+        <section id="input-section">
+            <div class="input-group">
+                <label for="subject-input">Subject:</label>
+                <input type="text" id="subject-input" placeholder="The What (Required)">
+            </div>
+            
+            <div id="location-input-row">
+                <label for="location-input">Location:</label>
+                <input type="text" id="location-input" placeholder="Page:Book number, URL, etc.">
+                <input type="checkbox" id="location-toggle" checked>
+                <label for="location-toggle">Enabled</label>
             </div>
 
-            <div class="form-row split">
-                <label>Page:</label>
-                <input type="text" id="page" placeholder="Page #">
-                <label>Book:</label>
-                <input type="text" id="book" placeholder="Book name/number">
+            <div id="description-input-row" class="input-group">
+                <label for="description-input">Description:</label>
+                <textarea id="description-input" placeholder="The Definition, etc."></textarea>
+            </div>
+            
+            <div id="notes-input-row" class="input-group">
+                <label for="notes-input">Notes:</label>
+                <textarea id="notes-input" placeholder="Add notes for this index..."></textarea>
             </div>
 
-            <div class="form-row">
-                <label>Description:</label>
-                <textarea id="description" placeholder="Input description..."></textarea>
-            </div>
+            <button id="add-btn">Add Item</button>
+        </section>
 
-            <div class="index-info">
-                <button onclick="addItem()">➕ ADD ITEM</button>
-                <span class="index-name" id="indexName">📋 MAIN INDEX</span>
-                <button onclick="showNotes()">📝 NOTES</button>
-            </div>
+        <section id="search-section">
+            <label for="search-input">Search:</label>
+            <input type="text" id="search-input" placeholder="Type to filter items...">
+        </section>
 
-            <div class="form-row">
-                <label>Search:</label>
-                <input type="text" id="search" class="search-box" placeholder="Type to filter items..." oninput="filterTable()">
-            </div>
-        </div>
-
-        <div class="table-section">
-            <table id="indexTable">
+        <section id="table-section">
+            <table>
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0)">Subject ▼</th>
-                        <th onclick="sortTable(1)">Page ▼</th>
-                        <th onclick="sortTable(2)">Book ▼</th>
-                        <th onclick="sortTable(3)">Description ▼</th>
+                        <th data-column="subject" class="sort-asc">Subject</th>
+                        <th data-column="location" class="location-column">Location</th>
+                        <th data-column="description">Description</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody">
-                </tbody>
+                <tbody id="table-body">
+                    </tbody>
             </table>
-        </div>
+        </section>
 
-        <div class="bottom-bar">
-            <div class="button-row">
-                <button onclick="removeSelected()">❌ REMOVE SELECTED</button>
-                <button onclick="showExportDialog()">💾 EXPORT INDEX</button>
-                <button onclick="loadIndexFromFile()">📂 LOAD INDEX</button>
-                <button onclick="clearAll()">🗑️ CLEAR ALL</button>
+        <section id="bottom-bar">
+            <div id="bottom-bar-left">
+                <button id="remove-btn">Remove Selected</button>
+                <button id="export-csv-btn">Export CSV</button>
+                <button id="save-json-btn">Save as JSON</button>
             </div>
-            <div>
-                <span>Items: </span>
-                <span class="item-count" id="itemCount">0</span>
+            <div id="status-bar">
+                RECORDS: <span id="item-count">0</span>
             </div>
-        </div>
+        </section>
     </div>
-
-    <!-- Notes Modal -->
-    <div class="modal" id="notesModal">
-        <div class="modal-content">
-            <h2>📝 Index Notes</h2>
-            <textarea id="notesText" placeholder="Add notes about this index..."></textarea>
-            <button onclick="closeNotes()">CLOSE</button>
-        </div>
-    </div>
-
-    <!-- Export Modal -->
-    <div class="modal" id="exportModal">
-        <div class="modal-content">
-            <h2>💾 Export Index</h2>
-            <p>Index Name:</p>
-            <input type="text" id="indexNameInput" placeholder="Enter index name..." style="width: 100%; padding: 8px; margin-bottom: 15px; font-family: 'Courier New', monospace;">
-            <p>Sort by:</p>
-            <select id="sortOption" onchange="updateExportPreview()" style="width: 100%; padding: 8px; margin-bottom: 15px; font-family: 'Courier New', monospace;">
-                <option value="none">None</option>
-                <option value="subject">Subject</option>
-                <option value="page">Page</option>
-                <option value="book">Book</option>
-            </select>
-            <p>Preview (first 10 items):</p>
-            <textarea id="exportPreview" readonly></textarea>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="downloadCSV()">⬇️ DOWNLOAD CSV</button>
-                <button onclick="closeExport()">CANCEL</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- File input (hidden) -->
-    <input type="file" id="fileInput" accept=".csv" style="display: none;" onchange="handleFileLoad(event)">
 
     <script>
-        let items = [];
-        let selectedRows = new Set();
-        let notes = '';
-        let sortDirection = [1, 1, 1, 1]; // 1 for ascending, -1 for descending
-        let indexName = 'MAIN INDEX'; // Current index name
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // Initialize
-        document.getElementById('subject').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') addItem();
-        });
+            // --- 1. Global State ---
+            /** @type {{id: number, subject: string, location: string, description: string}[]} */
+            let items = [];
+            let notes = "";
+            let locationEnabled = true;
+            let currentSort = { column: 'subject', order: 'asc' };
+            let nextId = 0;
+            let lastSelectedRow = null;
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-            document.body.classList.toggle('light');
-        }
+            // --- 2. DOM Elements ---
+            const $ = (selector) => document.querySelector(selector);
+            const $$ = (selector) => document.querySelectorAll(selector);
 
-        function addItem() {
-            const subject = document.getElementById('subject').value.trim();
-            const page = document.getElementById('page').value.trim();
-            const book = document.getElementById('book').value.trim();
-            const description = document.getElementById('description').value.trim();
+            const tableBody = $('#table-body');
+            const itemCount = $('#item-count');
+            const searchInput = $('#search-input');
+            const subjectInput = $('#subject-input');
+            const locationInput = $('#location-input');
+            const descriptionInput = $('#description-input');
+            const notesInput = $('#notes-input');
+            const locationToggle = $('#location-toggle');
+            const loadFileInput = $('#load-file-input');
 
-            if (!subject || !page || !book) {
-                alert('Subject, Page, and Book are required!');
-                return;
-            }
+            // --- 3. Core Functions ---
 
-            items.push({ subject, page, book, description });
-
-            // Clear inputs
-            document.getElementById('subject').value = '';
-            document.getElementById('page').value = '';
-            document.getElementById('book').value = '';
-            document.getElementById('description').value = '';
-
-            document.getElementById('subject').focus();
-            refreshTable();
-        }
-
-        function refreshTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-
-            items.forEach((item, index) => {
-                const row = tbody.insertRow();
-                row.onclick = function() { toggleRowSelection(index); };
-                
-                if (selectedRows.has(index)) {
-                    row.classList.add('selected');
-                }
-
-                row.insertCell(0).textContent = item.subject;
-                row.insertCell(1).textContent = item.page;
-                row.insertCell(2).textContent = item.book;
-                row.insertCell(3).textContent = item.description;
-            });
-
-            document.getElementById('itemCount').textContent = items.length;
-            filterTable(); // Reapply filter if active
-        }
-
-        function toggleRowSelection(index) {
-            if (selectedRows.has(index)) {
-                selectedRows.delete(index);
-            } else {
-                selectedRows.add(index);
-            }
-            refreshTable();
-        }
-
-        function removeSelected() {
-            if (selectedRows.size === 0) {
-                alert('Please select items to remove!');
-                return;
-            }
-
-            // Remove items in reverse order to maintain indices
-            const sortedIndices = Array.from(selectedRows).sort((a, b) => b - a);
-            sortedIndices.forEach(index => {
-                items.splice(index, 1);
-            });
-
-            selectedRows.clear();
-            refreshTable();
-        }
-
-        function clearAll() {
-            if (items.length === 0) {
-                alert('Index is already empty!');
-                return;
-            }
-
-            if (confirm('Are you sure you want to clear all items?')) {
-                items = [];
-                selectedRows.clear();
-                indexName = 'MAIN INDEX';
-                updateIndexLabel();
-                refreshTable();
-            }
-        }
-
-        function updateIndexLabel() {
-            document.getElementById('indexName').textContent = '📋 ' + indexName;
-        }
-
-        function filterTable() {
-            const searchText = document.getElementById('search').value.toLowerCase();
-            const rows = document.querySelectorAll('#tableBody tr');
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.classList.toggle('hidden', searchText && !text.includes(searchText));
-            });
-        }
-
-        function sortTable(columnIndex) {
-            const direction = sortDirection[columnIndex];
+            /**
+             * Debounce function to limit how often a function is called.
+             * @param {Function} func - The function to debounce.
+             * @param {number} delay - The delay in milliseconds.
+             */
+            const debounce = (func, delay) => {
+                let timeoutId;
+                return (...args) => {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        func.apply(this, args);
+                    }, delay);
+                };
+            };
             
-            items.sort((a, b) => {
-                let aVal, bVal;
+            /**
+             * Renders the items array into the HTML table.
+             * Applies current filter and sort.
+             */
+            const renderTable = () => {
+                const filterTerms = searchInput.value.toLowerCase().split(' ').filter(Boolean);
                 
-                switch(columnIndex) {
-                    case 0: aVal = a.subject.toLowerCase(); bVal = b.subject.toLowerCase(); break;
-                    case 1: 
-                        aVal = parseInt(a.page) || 0;
-                        bVal = parseInt(b.page) || 0;
-                        break;
-                    case 2: aVal = a.book.toLowerCase(); bVal = b.book.toLowerCase(); break;
-                    case 3: aVal = a.description.toLowerCase(); bVal = b.description.toLowerCase(); break;
-                }
+                // 1. Filter
+                const filteredItems = items.filter(item => {
+                    const searchCorpus = [
+                        item.subject.toLowerCase(),
+                        item.location.toLowerCase(),
+                        item.description.toLowerCase()
+                    ].join(' ');
+                    
+                    return filterTerms.every(term => searchCorpus.includes(term));
+                });
 
-                if (columnIndex === 1) {
-                    return (aVal - bVal) * direction;
+                // 2. Sort
+                filteredItems.sort((a, b) => {
+                    const valA = a[currentSort.column].toLowerCase();
+                    const valB = b[currentSort.column].toLowerCase();
+                    
+                    if (valA < valB) return currentSort.order === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSort.order === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                // 3. Render
+                tableBody.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+
+                for (const item of filteredItems) {
+                    const tr = document.createElement('tr');
+                    tr.dataset.id = item.id;
+                    
+                    // Keep track of which rows are selected
+                    if (item.selected) {
+                        tr.classList.add('selected');
+                    }
+                    
+                    // Subject
+                    const tdSubject = document.createElement('td');
+                    tdSubject.innerText = item.subject;
+                    tdSubject.dataset.column = 'subject';
+                    tdSubject.setAttribute('contenteditable', 'true');
+                    tr.appendChild(tdSubject);
+                    
+                    // Location
+                    const tdLocation = document.createElement('td');
+                    tdLocation.innerText = item.location;
+                    tdLocation.dataset.column = 'location';
+                    tdLocation.classList.add('location-column');
+                    tdLocation.setAttribute('contenteditable', 'true');
+                    tr.appendChild(tdLocation);
+                    
+                    // Description
+                    const tdDescription = document.createElement('td');
+                    tdDescription.innerText = item.description;
+                    tdDescription.dataset.column = 'description';
+                    tdDescription.setAttribute('contenteditable', 'true');
+                    tr.appendChild(tdDescription);
+                    
+                    fragment.appendChild(tr);
+                }
+                
+                tableBody.appendChild(fragment);
+
+                // 4. Update count
+                if (filterTerms.length > 0) {
+                    itemCount.textContent = `${filteredItems.length} of ${items.length}`;
                 } else {
-                    return aVal < bVal ? -direction : aVal > bVal ? direction : 0;
+                    itemCount.textContent = items.length;
                 }
-            });
+            };
+            
+            /**
+             * Adds a new item from the input fields to the state.
+             */
+            const addItem = () => {
+                const subject = subjectInput.value.trim();
+                if (!subject) {
+                    alert('Subject is a required field.');
+                    subjectInput.focus();
+                    return;
+                }
+                
+                const location = locationEnabled ? locationInput.value.trim() : "";
+                const description = descriptionInput.value.trim();
+                
+                items.push({
+                    id: nextId++,
+                    subject,
+                    location,
+                    description,
+                    selected: false
+                });
+                
+                // Clear inputs
+                subjectInput.value = '';
+                locationInput.value = '';
+                descriptionInput.value = '';
+                
+                renderTable();
+                subjectInput.focus();
+            };
 
-            sortDirection[columnIndex] *= -1;
-            refreshTable();
-        }
+            /**
+             * Removes all selected items from the state.
+             */
+            const removeSelectedItems = () => {
+                const selectedIds = new Set(items.filter(i => i.selected).map(i => i.id));
+                if (selectedIds.size === 0) {
+                    alert('No items selected to remove.');
+                    return;
+                }
+                
+                items = items.filter(item => !selectedIds.has(item.id));
+                lastSelectedRow = null;
+                renderTable();
+            };
 
-        function showNotes() {
-            document.getElementById('notesText').value = notes;
-            document.getElementById('notesModal').classList.add('active');
-        }
+            /**
+             * Toggles the visibility and state of the Location field.
+             * @param {boolean} isEnabled - The new state.
+             */
+            const toggleLocation = (isEnabled) => {
+                locationEnabled = isEnabled;
+                locationToggle.checked = isEnabled;
+                locationInput.disabled = !isEnabled;
+                document.body.classList.toggle('location-disabled', !isEnabled);
+            };
 
-        function closeNotes() {
-            notes = document.getElementById('notesText').value;
-            document.getElementById('notesModal').classList.remove('active');
-        }
+            /**
+             * Toggles the dark mode class on the body.
+             */
+            const toggleTheme = () => {
+                document.body.classList.toggle('dark-mode');
+            };
 
-        function showExportDialog() {
-            if (items.length === 0) {
-                alert('Index is empty!');
-                return;
-            }
+            /**
+             * Handles a click on a table header to sort.
+             * @param {string} columnKey - The column to sort by.
+             */
+            const handleSort = (columnKey) => {
+                // Update sort state
+                if (currentSort.column === columnKey) {
+                    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = columnKey;
+                    currentSort.order = 'asc';
+                }
+                
+                // Update header classes
+                $$('thead th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+                const header = $(`thead th[data-column="${columnKey}"]`);
+                if (header) {
+                    header.classList.add(currentSort.order === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+                
+                renderTable();
+            };
 
-            // Pre-fill with current index name (convert to lowercase and remove spaces)
-            const defaultName = indexName.toLowerCase().replace(/\s+/g, '_');
-            document.getElementById('indexNameInput').value = defaultName;
-            updateExportPreview();
-            document.getElementById('exportModal').classList.add('active');
-        }
+            /**
+             * Triggers a file download.
+             * @param {string} content - The file content.
+             * @param {string} fileName - The name of the file.
+             * @param {string} mimeType - The MIME type.
+             */
+            const triggerDownload = (content, fileName, mimeType) => {
+                const blob = new Blob([content], { type: mimeType });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+            };
 
-        function closeExport() {
-            document.getElementById('exportModal').classList.remove('active');
-        }
+            /**
+             * Exports the current items to a JSON file.
+             */
+            const exportJson = () => {
+                // Create a data structure matching the Python app's save format
+                const dataToSave = {
+                    index_name: "MasterIQ_Web_Export",
+                    note: notesInput.value,
+                    location_enabled: locationEnabled,
+                    // Strip internal 'id' and 'selected' fields before saving
+                    items: items.map(({ subject, location, description }) => ({
+                        subject,
+                        location,
+                        description
+                    }))
+                };
+                
+                const jsonContent = JSON.stringify(dataToSave, null, 2);
+                triggerDownload(jsonContent, 'MIQ_Index.json', 'application/json');
+            };
 
-        function updateExportPreview() {
-            const sortBy = document.getElementById('sortOption').value;
-            let sortedItems = [...items];
+            /**
+             * Exports the current items to a CSV file.
+             */
+            const exportCsv = () => {
+                const quote = (str) => `"${(str || "").replace(/"/g, '""')}"`;
+                let headers, rows;
 
-            if (sortBy === 'subject') {
-                sortedItems.sort((a, b) => a.subject.toLowerCase().localeCompare(b.subject.toLowerCase()));
-            } else if (sortBy === 'page') {
-                sortedItems.sort((a, b) => (parseInt(a.page) || 0) - (parseInt(b.page) || 0));
-            } else if (sortBy === 'book') {
-                sortedItems.sort((a, b) => a.book.toLowerCase().localeCompare(b.book.toLowerCase()));
-            }
+                if (locationEnabled) {
+                    headers = ['Subject', 'Location', 'Description'];
+                    rows = items.map(item => 
+                        [quote(item.subject), quote(item.location), quote(item.description)].join(',')
+                    );
+                } else {
+                    headers = ['Subject', 'Description'];
+                    rows = items.map(item => 
+                        [quote(item.subject), quote(item.description)].join(',')
+                    );
+                }
+                
+                const csvContent = [headers.join(','), ...rows].join('\n');
+                triggerDownload(csvContent, 'MIQ_Index.csv', 'text/csv;charset=utf-8;');
+            };
 
-            let preview = 'Subject,Page,Book,Description\n';
-            preview += '-'.repeat(80) + '\n';
+            /**
+             * Handles the file input change event to load a file.
+             * @param {Event} e - The file input event.
+             */
+            const loadFromFile = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
 
-            sortedItems.slice(0, 10).forEach(item => {
-                preview += `${item.subject},${item.page},${item.book},${item.description}\n`;
-            });
-
-            if (sortedItems.length > 10) {
-                preview += `\n... and ${sortedItems.length - 10} more items`;
-            }
-
-            document.getElementById('exportPreview').value = preview;
-        }
-
-        function downloadCSV() {
-            const indexName = document.getElementById('indexNameInput').value.trim() || 'index';
-            const sortBy = document.getElementById('sortOption').value;
-            let sortedItems = [...items];
-
-            if (sortBy === 'subject') {
-                sortedItems.sort((a, b) => a.subject.toLowerCase().localeCompare(b.subject.toLowerCase()));
-            } else if (sortBy === 'page') {
-                sortedItems.sort((a, b) => (parseInt(a.page) || 0) - (parseInt(b.page) || 0));
-            } else if (sortBy === 'book') {
-                sortedItems.sort((a, b) => a.book.toLowerCase().localeCompare(b.book.toLowerCase()));
-            }
-
-            let csv = 'Subject,Page,Book,Description\n';
-            sortedItems.forEach(item => {
-                const escapedSubject = `"${item.subject.replace(/"/g, '""')}"`;
-                const escapedPage = `"${item.page.replace(/"/g, '""')}"`;
-                const escapedBook = `"${item.book.replace(/"/g, '""')}"`;
-                const escapedDesc = `"${item.description.replace(/"/g, '""')}"`;
-                csv += `${escapedSubject},${escapedPage},${escapedBook},${escapedDesc}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${indexName}_index.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-
-            closeExport();
-        }
-
-        function loadIndexFromFile() {
-            document.getElementById('fileInput').click();
-        }
-
-        function handleFileLoad(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const text = e.target.result;
-                    
-                    // Parse CSV into rows (handles multi-line quoted fields)
-                    const rows = parseCSV(text);
-                    
-                    if (rows.length === 0) {
-                        alert('CSV file is empty.');
-                        return;
-                    }
-                    
-                    // Check header
-                    const header = rows[0];
-                    const expectedHeaders = ['Subject', 'Page', 'Book', 'Description'];
-                    
-                    if (header.length !== 4 || !header.every((h, i) => h.trim() === expectedHeaders[i])) {
-                        alert('Invalid CSV format.\n\nExpected headers: Subject,Page,Book,Description\nFound: ' + header.join(','));
-                        return;
-                    }
-
-                    const newItems = [];
-                    
-                    // Parse data rows
-                    for (let i = 1; i < rows.length; i++) {
-                        const fields = rows[i];
-                        
-                        // Skip empty rows
-                        if (fields.length === 1 && !fields[0].trim()) continue;
-
-                        if (fields.length !== 4) {
-                            alert(`Row ${i + 1} has ${fields.length} columns, expected 4.\n\nEach row must have: Subject,Page,Book,Description`);
-                            return;
-                        }
-
-                        const [subject, page, book, description] = fields;
-                        
-                        if (!subject.trim() || !page.trim() || !book.trim()) {
-                            alert(`Row ${i + 1}: Subject, Page, and Book cannot be empty.`);
-                            return;
-                        }
-
-                        newItems.push({
-                            subject: subject.trim(),
-                            page: page.trim(),
-                            book: book.trim(),
-                            description: description.trim()
-                        });
-                    }
-
-                    if (newItems.length === 0) {
-                        alert('No valid items found in CSV file.');
-                        return;
-                    }
-
-                    // Ask user what to do if current index has items
-                    if (items.length > 0) {
-                        const action = confirm(
-                            `Current index has ${items.length} items.\n\n` +
-                            `Click OK to MERGE ${newItems.length} items from file.\n` +
-                            `Click Cancel to REPLACE current items.`
-                        );
-                        
-                        if (action) {
-                            // Merge
-                            items.push(...newItems);
-                            alert(`Merged ${newItems.length} items successfully!`);
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    try {
+                        if (file.name.endsWith('.json')) {
+                            parseJson(content);
+                        } else if (file.name.endsWith('.csv')) {
+                            parseCsv(content);
                         } else {
-                            // Replace
-                            items = newItems;
-                            alert(`Replaced with ${newItems.length} items successfully!`);
+                            alert('Unsupported file type. Please select a .json or .csv file.');
                         }
-                    } else {
-                        items = newItems;
-                        alert(`Loaded ${newItems.length} items successfully!`);
+                    } catch (err) {
+                        alert(`Error parsing file: ${err.message}`);
                     }
-
-                    // Update index name from filename
-                    const fileName = file.name.replace('.csv', '').replace('_index', '');
-                    indexName = fileName.toUpperCase();
-                    updateIndexLabel();
-
-                    selectedRows.clear();
-                    refreshTable();
-                    
-                } catch (error) {
-                    alert('Error loading CSV file: ' + error.message);
-                    console.error('CSV Load Error:', error);
-                }
+                    // Reset file input to allow loading the same file again
+                    loadFileInput.value = null;
+                };
+                reader.onerror = () => {
+                    alert('Error reading file.');
+                };
+                reader.readAsText(file);
             };
 
-            reader.onerror = function() {
-                alert('Error reading file. Please try again.');
-            };
-
-            reader.readAsText(file);
-            event.target.value = ''; // Reset file input
-        }
-
-        // Parse entire CSV file handling multi-line quoted fields
-        function parseCSV(text) {
-            const rows = [];
-            let currentRow = [];
-            let currentField = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                const nextChar = text[i + 1];
+            /**
+             * Parses loaded JSON content into the app state.
+             * @param {string} content - The JSON string.
+             */
+            const parseJson = (content) => {
+                const loadedData = JSON.parse(content);
                 
-                if (char === '"') {
-                    if (inQuotes && nextChar === '"') {
-                        // Escaped quote - add one quote to field
-                        currentField += '"';
-                        i++; // Skip next quote
+                if (!loadedData.items || !Array.isArray(loadedData.items)) {
+                    throw new Error('Invalid JSON format. "items" array is missing.');
+                }
+                
+                items = loadedData.items.map((item) => ({
+                    id: nextId++,
+                    subject: item.subject || "",
+                    location: item.location || "",
+                    description: item.description || "",
+                    selected: false
+                }));
+                
+                notes = loadedData.note || "";
+                notesInput.value = notes;
+                
+                // Default to true if missing
+                const isEnabled = loadedData.location_enabled === false ? false : true;
+                toggleLocation(isEnabled);
+                
+                renderTable();
+            };
+            
+            /**
+             * Robust CSV parser that respects quoted fields containing commas.
+             * @param {string} content - The CSV string.
+             */
+            const parseCsv = (content) => {
+                const lines = content.replace(/\r\n/g, '\n').split('\n');
+                if (lines.length === 0) return;
+
+                const headers = lines[0].toLowerCase().split(',');
+                const subjectIndex = headers.indexOf('subject');
+                const locationIndex = headers.indexOf('location');
+                const descriptionIndex = headers.indexOf('description');
+
+                if (subjectIndex === -1 || descriptionIndex === -1) {
+                    throw new Error('Invalid CSV. Must contain "Subject" and "Description" headers.');
+                }
+
+                // If location header exists, enable it. Otherwise, disable it.
+                toggleLocation(locationIndex !== -1);
+                
+                // Regex to split CSV row while respecting quotes
+                // Matches commas that are not inside a pair of double-quotes
+                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
+
+                const newItems = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === "") continue;
+
+                    const values = lines[i].split(regex);
+                    
+                    // Helper function to unquote and unescape
+                    const unquote = (str) => {
+                        if (!str) return "";
+                        let val = str.trim();
+                        // Remove surrounding quotes, if they exist
+                        if (val.startsWith('"') && val.endsWith('"')) {
+                            val = val.substring(1, val.length - 1);
+                        }
+                        // Unescape double-double-quotes back to a single double-quote
+                        return val.replace(/""/g, '"');
+                    };
+
+                    newItems.push({
+                        id: nextId++,
+                        subject: unquote(values[subjectIndex]),
+                        location: (locationIndex !== -1) ? unquote(values[locationIndex]) : "",
+                        description: unquote(values[descriptionIndex]),
+                        selected: false
+                    });
+                }
+                
+                items = newItems;
+                renderTable();
+            };
+
+            // --- 4. Event Listeners ---
+            
+            // Add Button
+            $('#add-btn').addEventListener('click', addItem);
+            
+            // Allow "Enter" in Subject to jump to Location (or Description)
+            subjectInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (locationEnabled) {
+                        locationInput.focus();
                     } else {
-                        // Toggle quote state
-                        inQuotes = !inQuotes;
+                        descriptionInput.focus();
                     }
-                } else if (char === ',' && !inQuotes) {
-                    // End of field
-                    currentRow.push(currentField);
-                    currentField = '';
-                } else if ((char === '\n' || char === '\r') && !inQuotes) {
-                    // End of row (handle both \n and \r\n)
-                    if (char === '\r' && nextChar === '\n') {
-                        i++; // Skip \n in \r\n
+                }
+            });
+
+            // Allow "Enter" in Location to jump to Description
+            locationInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    descriptionInput.focus();
+                }
+            });
+            
+            // Allow "Enter" in Description to jump to Add Button
+            descriptionInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
+                    e.preventDefault();
+                    $('#add-btn').focus();
+                }
+            });
+
+            // Remove Button
+            $('#remove-btn').addEventListener('click', removeSelectedItems);
+            
+            // Search (Debounced)
+            searchInput.addEventListener('input', debounce(renderTable, 250));
+
+            // Location Toggle
+            locationToggle.addEventListener('change', (e) => toggleLocation(e.target.checked));
+            
+            // Notes Save
+            notesInput.addEventListener('change', (e) => notes = e.target.value);
+
+            // Menu Bar
+            $('#menu-load').addEventListener('click', () => loadFileInput.click());
+            loadFileInput.addEventListener('change', loadFromFile);
+            
+            $('#menu-save-json').addEventListener('click', exportJson);
+            $('#menu-export-csv').addEventListener('click', exportCsv);
+            $('#save-json-btn').addEventListener('click', exportJson);
+            $('#export-csv-btn').addEventListener('click', exportCsv);
+            
+            $('#menu-toggle-theme').addEventListener('click', toggleTheme);
+            $('#menu-toggle-location').addEventListener('click', () => locationToggle.click());
+
+            // Table: Sort
+            $('thead').addEventListener('click', (e) => {
+                const header = e.target.closest('th');
+                if (header && header.dataset.column) {
+                    handleSort(header.dataset.column);
+                }
+            });
+
+            // Table: Edit
+            tableBody.addEventListener('input', (e) => {
+                const td = e.target.closest('td[contenteditable="true"]');
+                if (!td) return;
+                
+                const tr = td.closest('tr');
+                const id = parseInt(tr.dataset.id, 10);
+                const column = td.dataset.column;
+                const newValue = td.innerText; // Use innerText to handle newlines
+                
+                const item = items.find(i => i.id === id);
+                if (item && item[column] !== newValue) {
+                    item[column] = newValue;
+                    // Note: This live-updates the model. No "save" button needed.
+                }
+            });
+            
+            // Table: Select
+            tableBody.addEventListener('click', (e) => {
+                const tr = e.target.closest('tr');
+                if (!tr) return;
+                
+                const id = parseInt(tr.dataset.id, 10);
+                const item = items.find(i => i.id === id);
+                if (!item) return;
+
+                const isCtrlPressed = e.ctrlKey || e.metaKey;
+                const isShiftPressed = e.shiftKey;
+
+                if (isShiftPressed && lastSelectedRow) {
+                    // Shift-click range selection
+                    const rows = Array.from(tableBody.querySelectorAll('tr'));
+                    const lastId = parseInt(lastSelectedRow.dataset.id, 10);
+                    const lastIndex = rows.findIndex(row => parseInt(row.dataset.id, 10) === lastId);
+                    const currentIndex = rows.findIndex(row => parseInt(row.dataset.id, 10) === id);
+                    
+                    const start = Math.min(lastIndex, currentIndex);
+                    const end = Math.max(lastIndex, currentIndex);
+                    
+                    // First, de-select all (unless Ctrl is also held)
+                    if (!isCtrlPressed) {
+                        items.forEach(i => i.selected = false);
+                        $$('#table-body tr.selected').forEach(row => row.classList.remove('selected'));
                     }
                     
-                    // Add field and row
-                    currentRow.push(currentField);
-                    
-                    // Only add non-empty rows
-                    if (currentRow.length > 1 || currentRow[0].trim() !== '') {
-                        rows.push(currentRow);
+                    // Select items in range
+                    for (let i = start; i <= end; i++) {
+                        const rowToSelect = rows[i];
+                        const itemToSelect = items.find(it => it.id === parseInt(rowToSelect.dataset.id, 10));
+                        if (itemToSelect) {
+                            itemToSelect.selected = true;
+                            rowToSelect.classList.add('selected');
+                        }
                     }
+
+                } else if (isCtrlPressed) {
+                    // Ctrl-click toggle selection
+                    item.selected = !item.selected;
+                    tr.classList.toggle('selected', item.selected);
+                    lastSelectedRow = tr;
                     
-                    currentRow = [];
-                    currentField = '';
                 } else {
-                    // Regular character (including newlines inside quotes)
-                    currentField += char;
+                    // Simple click: select only this one
+                    items.forEach(i => i.selected = false);
+                    $$('#table-body tr.selected').forEach(row => row.classList.remove('selected'));
+                    
+                    item.selected = true;
+                    tr.classList.add('selected');
+                    lastSelectedRow = tr;
                 }
-            }
+            });
             
-            // Add last field and row if not empty
-            if (currentField || currentRow.length > 0) {
-                currentRow.push(currentField);
-                if (currentRow.length > 1 || currentRow[0].trim() !== '') {
-                    rows.push(currentRow);
+            // Global keydown for delete
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    // Don't delete if user is editing text
+                    if (document.activeElement.tagName === 'INPUT' || 
+                        document.activeElement.tagName === 'TEXTAREA' ||
+                        document.activeElement.isContentEditable) {
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    removeSelectedItems();
                 }
-            }
-            
-            return rows;
-        }
+            });
 
-        // Click outside modal to close
-        document.getElementById('notesModal').addEventListener('click', function(e) {
-            if (e.target === this) closeNotes();
-        });
-
-        document.getElementById('exportModal').addEventListener('click', function(e) {
-            if (e.target === this) closeExport();
+            // --- 5. Initial Load ---
+            renderTable(); // Render empty table on load
         });
     </script>
+
 </body>
 </html>
