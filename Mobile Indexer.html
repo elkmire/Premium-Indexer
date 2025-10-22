@@ -74,17 +74,14 @@
             font-size: var(--font-size);
             background-color: var(--bg-main);
             color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
             padding: 1rem;
         }
 
         #app-container {
             width: 100%;
-            max-width: 1000px;
-            height: 95vh;
+            /* max-width: 1000px; <-- REMOVED */
+            height: calc(100vh - 2rem); /* Fills height inside body padding */
             background-color: var(--bg-main);
             border: 1px solid var(--border-main);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
