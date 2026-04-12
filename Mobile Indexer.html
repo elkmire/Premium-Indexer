@@ -3,991 +3,1399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master IQ (Web)</title>
-    
+    <title>M.MINDMAP // v1.3</title>
+
     <style>
-        /* --- 1. CSS Variables and Themes --- */
+        /* --- 1. CSS Variables --- */
         :root {
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font: 'Courier New', 'Lucida Console', Monaco, monospace;
             --font-size: 14px;
-            
-            /* Light Theme */
-            --bg-main: #f0f0f0;
-            --bg-input: #ffffff;
-            --bg-input-focus: #ffffff;
-            --bg-header: #e1e1e1;
-            --bg-btn: #e1e1e1;
-            --bg-btn-hover: #cacaca;
-            --bg-btn-accent: #0078d7;
-            --bg-btn-accent-hover: #005a9e;
-            --bg-row-hover: #f5f5f5;
-            --bg-row-selected: #0078d7;
 
-            --text-main: #000000;
-            --text-placeholder: #666666;
-            --text-btn: #000000;
-            --text-btn-accent: #ffffff;
-            --text-accent: #005a9e;
-            --text-row-selected: #ffffff;
-            
-            --border-main: #cccccc;
-            --border-focus: #0078d7;
-            --border-grid: #d0d0d0;
-            --border-btn-accent: #0078d7;
+            --bg:           #0a0a0a;
+            --bg-input:     #0d0d0d;
+            --bg-focus:     #111111;
+            --bg-header:    #0f0f0f;
+            --bg-btn:       #1a1a1a;
+            --bg-btn-hover: #252525;
+            --bg-accent:    #00ff41;
+            --bg-accent-hv: #00cc33;
+            --bg-hover-row: #0f1a0f;
+
+            --text:         #00ff41;
+            --text-dim:     #00882a;
+            --text-ph:      #334433;
+            --text-accent:  #0a0a0a;
+            --text-data:    #cc4444;
+            --text-sel:     #00ffff;
+            --text-err:     #ff4444;
+
+            --border:       #00ff41;
+            --border-dim:   #003311;
+            --border-focus: #ff4444;
+            --border-grid:  #0d1a0d;
+
+            --glow:         rgba(0,255,65,0.25);
+            --glow-red:     rgba(255,51,51,0.4);
+            --glow-cyan:    rgba(0,255,255,0.5);
+            --scanline:     rgba(0,255,65,0.025);
+
+            /* Tags */
+            --tag-bg:       #001a08;
+            --tag-border:   #00ff41;
+            --tag-text:     #00ff41;
+            --tag-active-bg: #00ff41;
+            --tag-active-text: #0a0a0a;
         }
 
-        body.dark-mode {
-            /* Dark Theme (from PyQt app) */
-            --bg-main: #1e1e23;
-            --bg-input: #25252a;
-            --bg-input-focus: #1e1e23;
-            --bg-header: #2a2a30;
-            --bg-btn: #3c3c46;
-            --bg-btn-hover: #4a4a52;
-            --bg-btn-accent: #6496ff;
-            --bg-btn-accent-hover: #7aa5ff;
-            --bg-row-hover: #2a2a30;
-            --bg-row-selected: #6496ff;
-
-            --text-main: #dcdce1;
-            --text-placeholder: #888888;
-            --text-btn: #dcdce1;
-            --text-btn-accent: #ffffff;
-            --text-accent: #6496ff;
-            --text-row-selected: #ffffff;
-            
-            --border-main: #3c3c46;
-            --border-focus: #6496ff;
-            --border-grid: #3c3c46;
-            --border-btn-accent: #6496ff;
+        /* --- 2. Animations --- */
+        @keyframes flicker {
+            0%,100%{opacity:1} 93%{opacity:.85} 94%{opacity:1} 97%{opacity:.92} 98%{opacity:1}
+        }
+        @keyframes scanline {
+            0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)}
+        }
+        @keyframes glow-pulse {
+            0%,100%{text-shadow:0 0 5px var(--glow),0 0 10px var(--glow)}
+            50%{text-shadow:0 0 10px var(--glow),0 0 20px var(--glow),0 0 35px var(--glow)}
+        }
+        @keyframes border-pulse {
+            0%,100%{box-shadow:0 0 5px var(--glow),inset 0 0 5px rgba(0,255,65,.08)}
+            50%{box-shadow:0 0 18px var(--glow),0 0 30px rgba(0,255,65,.15),inset 0 0 10px rgba(0,255,65,.08)}
+        }
+        @keyframes blink {
+            0%,50%{border-right-color:var(--text)} 51%,100%{border-right-color:transparent}
+        }
+        @keyframes fadein {
+            from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)}
+        }
+        @keyframes fadeout {
+            from{opacity:1;transform:translateX(0)} to{opacity:0;transform:translateX(80px)}
+        }
+        @keyframes dots {
+            0%,20%{content:''} 40%{content:'.'} 60%{content:'..'} 80%,100%{content:'...'}
         }
 
-        /* --- 2. Basic Setup --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+        /* --- 3. Base --- */
+        *{box-sizing:border-box;margin:0;padding:0}
+
         body {
-            font-family: var(--font-family);
+            font-family: var(--font);
             font-size: var(--font-size);
-            background-color: var(--bg-main);
-            color: var(--text-main);
+            background: var(--bg);
+            color: var(--text);
             height: 100vh;
-            padding: 1rem;
-        }
-
-        #app-container {
-            width: 100%;
-            /* max-width: 1000px; <-- REMOVED */
-            height: calc(100vh - 2rem); /* Fills height inside body padding */
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-main);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
+            padding: .75rem;
             overflow: hidden;
+            animation: flicker 6s infinite;
         }
 
-        /* --- 3. Menu Bar --- */
-        nav.menu-bar {
-            background-color: var(--bg-header);
-            border-bottom: 1px solid var(--border-main);
-            padding: 4px;
-            display: flex;
-            gap: 4px;
+        /* Scanlines */
+        body::before {
+            content:'';
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background:repeating-linear-gradient(0deg,transparent,transparent 2px,var(--scanline) 2px,var(--scanline) 4px);
+            pointer-events:none;z-index:1000;
+        }
+        body::after {
+            content:'';
+            position:fixed;top:0;left:0;width:100%;height:8px;
+            background:linear-gradient(to bottom,transparent,var(--glow),transparent);
+            animation:scanline 9s linear infinite;
+            pointer-events:none;z-index:1001;
         }
 
-        .menu-dropdown {
-            position: relative;
-        }
-        
-        .menu-dropdown > button {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .menu-dropdown > button:hover {
-            background-color: var(--bg-btn-hover);
+        /* --- 4. App Container --- */
+        #app {
+            width:100%;
+            height:calc(100vh - 1.5rem);
+            background:var(--bg);
+            border:1px solid var(--border);
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+            animation:border-pulse 3s ease-in-out infinite;
+            position:relative;
         }
 
-        .menu-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: var(--bg-input);
-            border: 1px solid var(--border-main);
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            min-width: 200px;
-            z-index: 100;
-        }
-        
-        .menu-content button {
-            display: block;
-            width: 100%;
-            background: none;
-            border: none;
-            color: var(--text-main);
-            padding: 8px 12px;
-            text-align: left;
-            cursor: pointer;
-        }
-        .menu-content button:hover {
-            background-color: var(--bg-row-hover);
-        }
-        
-        .menu-dropdown:focus-within .menu-content {
-            display: block;
+        #app::before {
+            content:'[ M.MINDMAP v1.3 // MOBILE NODE ] ──────────────────────────────────────────────────────────────────────────────';
+            display:block;
+            padding:6px 12px;
+            background:var(--bg-header);
+            border-bottom:1px solid var(--border);
+            color:var(--text);
+            font-size:11px;
+            letter-spacing:2px;
+            text-transform:uppercase;
+            animation:glow-pulse 2.5s ease-in-out infinite;
+            white-space:nowrap;
+            overflow:hidden;
         }
 
-        /* --- 4. Input Section --- */
-        #input-section {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-main);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        /* --- 5. Menu Bar --- */
+        nav#menu-bar {
+            background:var(--bg-header);
+            border-bottom:1px solid var(--border-dim);
+            padding:3px 6px;
+            display:flex;
+            gap:4px;
+            align-items:center;
+            flex-wrap:wrap;
         }
 
-        .input-group {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            align-items: center;
-            gap: 8px;
+        .menu-drop { position:relative; }
+
+        .menu-drop > button {
+            background:none;
+            border:1px solid transparent;
+            color:var(--text);
+            padding:5px 9px;
+            cursor:pointer;
+            text-transform:uppercase;
+            letter-spacing:1px;
+            font-family:var(--font);
+            font-size:11px;
         }
-        
-        #location-input-row {
-            display: grid;
-            grid-template-columns: auto 1fr auto auto;
-            align-items: center;
-            gap: 8px;
+        .menu-drop > button::before { content:'> '; color:var(--text-dim); }
+        .menu-drop > button:hover {
+            background:var(--bg-btn-hover);
+            border-color:var(--border);
+            text-shadow:0 0 8px var(--glow);
         }
 
-        #description-input-row,
-        #notes-input-row {
-            grid-column: 1 / -1;
-            grid-template-columns: auto 1fr;
-            align-items: start;
+        .menu-panel {
+            display:none;
+            position:absolute;
+            top:100%;left:0;
+            background:var(--bg-input);
+            border:1px solid var(--border);
+            box-shadow:0 0 18px var(--glow);
+            min-width:200px;
+            z-index:200;
+        }
+        .menu-panel button {
+            display:block;width:100%;background:none;border:none;
+            color:var(--text);padding:9px 12px;text-align:left;
+            cursor:pointer;font-family:var(--font);font-size:11px;
+            text-transform:uppercase;letter-spacing:1px;
+        }
+        .menu-panel button::before { content:'├─ '; color:var(--text-dim); }
+        .menu-panel button:last-child::before { content:'└─ '; }
+        .menu-panel button:hover { background:var(--bg-hover-row); text-shadow:0 0 8px var(--glow); }
+        .menu-drop:focus-within .menu-panel { display:block; animation:fadein .15s ease; }
+
+        /* Index name in menubar */
+        #idx-group {
+            display:flex;align-items:center;gap:6px;
+            margin-left:10px;padding-left:10px;
+            border-left:1px solid var(--border-dim);
+        }
+        #idx-group label {
+            font-size:10px;text-transform:uppercase;letter-spacing:1px;
+            color:var(--text-dim);white-space:nowrap;
+        }
+        #idx-group label::after { content:'_'; animation:blink 1s step-end infinite; }
+        #idx-name {
+            width:220px;padding:4px 8px;
+            background:var(--bg-input);color:var(--text-data);
+            border:1px solid var(--border-dim);
+            font-size:11px;font-family:var(--font);
+            text-shadow:0 0 6px var(--glow-red);
+        }
+        #idx-name:focus {
+            outline:none;border-color:var(--border-focus);
+            box-shadow:0 0 12px var(--glow-red);
+            background:var(--bg-focus);
+        }
+        #idx-name::placeholder { color:var(--text-ph);text-shadow:none; }
+
+        /* --- 6. Input Form --- */
+        #form-toggle-bar {
+            background:var(--bg-header);
+            border-bottom:1px solid var(--border-dim);
+            padding:3px 10px;
+            display:flex;
+            align-items:center;
+            gap:8px;
+            cursor:pointer;
+            user-select:none;
+        }
+        #form-toggle-bar:hover { background:var(--bg-btn-hover); }
+        #form-toggle-label {
+            font-size:10px;text-transform:uppercase;letter-spacing:2px;
+            color:var(--text-dim);flex:1;
+        }
+        #form-toggle-icon {
+            font-size:12px;color:var(--text-dim);
+            transition:transform .2s ease;
+        }
+        #form-toggle-icon.collapsed { transform:rotate(-90deg); }
+
+        #input-form {
+            padding:.75rem 1rem;
+            border-bottom:1px solid var(--border-dim);
+            background:linear-gradient(180deg,var(--bg-header) 0%,var(--bg) 100%);
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:.6rem;
+        }
+        #input-form.hidden { display:none; }
+
+        .fg { /* form group */
+            display:grid;
+            grid-template-columns:auto 1fr;
+            align-items:center;
+            gap:6px;
+        }
+        .fg.full { grid-column:1/-1; align-items:start; }
+        .fg.full.center { align-items:center; }
+
+        .fg label {
+            font-size:10px;text-transform:uppercase;letter-spacing:1px;
+            color:var(--text-dim);white-space:nowrap;
+        }
+        .fg label::after { content:'_'; animation:blink 1s step-end infinite; }
+
+        input[type="text"], textarea {
+            width:100%;padding:7px 10px;
+            background:var(--bg-input);color:var(--text-data);
+            border:1px solid var(--border-dim);
+            font-size:13px;font-family:var(--font);
+            text-shadow:0 0 6px var(--glow-red);
+            transition:border-color .2s,box-shadow .2s;
+        }
+        textarea { resize:vertical; }
+        #desc-input { height:52px; }
+        #notes-input { height:36px; }
+
+        input[type="text"]:focus, textarea:focus {
+            outline:none;border-color:var(--border-focus);
+            box-shadow:0 0 12px var(--glow-red),inset 0 0 4px rgba(255,51,51,.08);
+            background:var(--bg-focus);
+        }
+        ::placeholder { color:var(--text-ph);font-style:normal;text-shadow:none; }
+
+        /* Tags input area */
+        #tags-area {
+            grid-column:1/-1;
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+        }
+        #tags-row {
+            display:grid;
+            grid-template-columns:auto 1fr;
+            align-items:center;
+            gap:6px;
+        }
+        #tags-row label {
+            font-size:10px;text-transform:uppercase;letter-spacing:1px;
+            color:var(--text-dim);white-space:nowrap;
+        }
+        #tags-row label::after { content:'_'; animation:blink 1s step-end infinite; }
+        #tags-input {
+            width:100%;padding:7px 10px;
+            background:var(--bg-input);color:var(--text-data);
+            border:1px solid var(--border-dim);
+            font-size:13px;font-family:var(--font);
+            text-shadow:0 0 6px var(--glow-red);
+        }
+        #tags-input:focus {
+            outline:none;border-color:var(--border-focus);
+            box-shadow:0 0 12px var(--glow-red);background:var(--bg-focus);
+        }
+        #existing-tags-row {
+            display:flex;
+            flex-wrap:wrap;
+            gap:4px;
+            padding:0 0 0 calc(/* label col */ 38px + 6px);
+            min-height:4px;
+        }
+        .etag { /* existing tag chip in form */
+            background:var(--tag-bg);
+            border:1px solid var(--border-dim);
+            color:var(--text-dim);
+            font-size:10px;font-family:var(--font);
+            padding:2px 7px;cursor:pointer;
+            text-transform:lowercase;letter-spacing:.5px;
+            transition:border-color .15s,color .15s;
+        }
+        .etag:hover {
+            border-color:var(--border);color:var(--text);
+            text-shadow:0 0 6px var(--glow);
         }
 
-        #notes-input-row {
-            align-items: center;
-        }
-
-        label {
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--bg-input);
-            color: var(--text-main);
-            border: 1px solid var(--border-main);
-            border-radius: 4px;
-            font-size: var(--font-size);
-            font-family: var(--font-family);
-        }
-        
-        textarea {
-            resize: vertical;
-        }
-
-        #description-input, #notes-input {
-            height: 60px; /* Match PyQt app */
-        }
-        
-        #notes-input {
-            height: 42px;
-        }
-
-        input[type="text"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--border-focus);
-            box-shadow: 0 0 0 2px var(--border-focus);
-        }
-        
-        ::placeholder {
-            color: var(--text-placeholder);
-            font-style: italic;
-        }
-
-        #location-toggle-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
+        /* Add button */
         #add-btn {
-            grid-column: 1 / -1;
+            grid-column:1/-1;
+            background:var(--bg-accent);color:var(--text-accent);
+            border:1px solid var(--border);
+            font-weight:700;font-size:12px;font-family:var(--font);
+            text-transform:uppercase;letter-spacing:2px;
+            padding:8px;cursor:pointer;
+            box-shadow:0 0 8px var(--glow);
+            transition:background .15s,box-shadow .15s;
+        }
+        #add-btn:hover {
+            background:var(--bg-accent-hv);
+            box-shadow:0 0 20px var(--glow),0 0 40px rgba(0,255,65,.2);
         }
 
-        /* --- 5. Search Section --- */
-        #search-section {
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border-main);
-            display: grid;
-            grid-template-columns: auto 1fr;
-            align-items: center;
-            gap: 8px;
+        /* --- 7. Filter Bar --- */
+        #filter-bar {
+            border-bottom:1px solid var(--border-dim);
+            background:var(--bg-header);
+            display:flex;
+            flex-direction:column;
+            gap:0;
         }
 
-        /* --- 6. Table Section --- */
-        #table-section {
-            flex-grow: 1;
-            overflow: auto; /* This makes the table scrollable */
+        #search-row {
+            padding:.5rem .75rem;
+            display:grid;
+            grid-template-columns:auto 1fr;
+            align-items:center;
+            gap:8px;
+            border-bottom:1px solid var(--border-dim);
+        }
+        #search-row label {
+            font-size:10px;text-transform:uppercase;letter-spacing:1px;
+            color:var(--text-dim);
+        }
+        #search-row label::before { content:'$ grep '; color:var(--text); }
+        #search-row label::after { content:'_'; animation:blink 1s step-end infinite; }
+        #search-input {
+            width:100%;padding:6px 10px;
+            background:var(--bg-input);color:var(--text-data);
+            border:1px solid var(--border-dim);
+            font-size:13px;font-family:var(--font);
+            text-shadow:0 0 6px var(--glow-red);
+        }
+        #search-input:focus {
+            outline:none;border-color:var(--border-focus);
+            box-shadow:0 0 10px var(--glow-red);background:var(--bg-focus);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
+        #tag-filter-row {
+            padding:4px 8px;
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:4px;
+            min-height:28px;
         }
+        #tag-filter-row.empty { display:none; }
 
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        .tfilter { /* tag filter chip */
+            background:var(--tag-bg);
+            border:1px solid var(--border-dim);
+            color:var(--text-dim);
+            font-size:10px;font-family:var(--font);
+            padding:2px 8px;cursor:pointer;
+            text-transform:lowercase;letter-spacing:.5px;
+            transition:all .15s;
         }
+        .tfilter:hover { border-color:var(--border);color:var(--text); }
+        .tfilter.active {
+            background:var(--tag-active-bg);color:var(--tag-active-text);
+            border-color:var(--border);
+            text-shadow:none;
+            box-shadow:0 0 8px var(--glow);
+        }
+        .tfilter.all-btn { text-transform:uppercase;letter-spacing:1px; }
 
+        /* --- 8. Table --- */
+        #table-wrap {
+            flex:1;overflow:auto;
+            background:linear-gradient(180deg,var(--bg) 0%,rgba(0,15,0,.4) 100%);
+        }
+        #table-wrap::-webkit-scrollbar { width:7px;height:7px; }
+        #table-wrap::-webkit-scrollbar-track { background:var(--bg);border-left:1px solid var(--border-dim); }
+        #table-wrap::-webkit-scrollbar-thumb { background:var(--border-dim);border:1px solid var(--border); }
+        #table-wrap::-webkit-scrollbar-thumb:hover { background:var(--text-dim); }
+
+        table { width:100%;border-collapse:collapse;table-layout:fixed; }
+
+        thead { position:sticky;top:0;z-index:10; }
         th {
-            background-color: var(--bg-header);
-            border-bottom: 1px solid var(--border-main);
-            padding: 10px;
-            text-align: left;
-            font-weight: 600;
-            cursor: pointer;
-            user-select: none;
+            background:var(--bg-header);
+            border-bottom:1px solid var(--border);
+            padding:9px 8px;text-align:left;
+            font-weight:600;cursor:pointer;user-select:none;
+            text-transform:uppercase;letter-spacing:2px;
+            font-size:10px;color:var(--text-dim);
+            transition:color .15s;
         }
-        
-        th.sort-asc::after { content: ' \25B2'; } /* Up triangle */
-        th.sort-desc::after { content: ' \25BC'; } /* Down triangle */
+        th:hover { color:var(--text);text-shadow:0 0 8px var(--glow); }
+        th.sort-asc::after  { content:' ▲';color:var(--text); }
+        th.sort-desc::after { content:' ▼';color:var(--text); }
 
-        th:nth-child(1) { width: 30%; }
-        th:nth-child(2) { width: 30%; }
-        th:nth-child(3) { width: 40%; }
+        /* Column widths */
+        th:nth-child(1) { width:24%; } /* Subject */
+        th:nth-child(2) { width:16%; } /* Tags */
+        th:nth-child(3) { width:16%; } /* Supplement */
+        th:nth-child(4) { width:44%; } /* Description */
 
         tbody tr {
-            border-bottom: 1px solid var(--border-grid);
+            border-bottom:1px solid var(--border-grid);
+            transition:background .15s;
+            animation:fadein .2s ease;
         }
-
-        tbody tr:hover {
-            background-color: var(--bg-row-hover);
-        }
-        
-        tbody tr.selected {
-            background-color: var(--bg-row-selected) !important;
-            color: var(--text-row-selected);
+        tbody tr:hover { background:var(--bg-hover-row); }
+        tbody tr.selected { background:#1a0000 !important; }
+        tbody tr.selected td {
+            color:var(--text-sel);
+            text-shadow:0 0 8px var(--glow-cyan);
         }
 
         td {
-            padding: 10px;
-            vertical-align: top;
-            white-space: pre-wrap; /* Allows multiline */
-            word-break: break-word;
-            border-right: 1px solid var(--border-grid);
+            padding:8px;
+            vertical-align:top;
+            white-space:pre-wrap;
+            word-break:break-word;
+            border-right:1px solid var(--border-grid);
+            color:var(--text-data);
+            text-shadow:0 0 6px var(--glow-red);
+            font-size:13px;
         }
-        
-        td:last-child {
-            border-right: none;
-        }
-        
+        td:last-child { border-right:none; }
         td[contenteditable="true"]:focus {
-            outline: 1px solid var(--border-focus);
-            background-color: var(--bg-input-focus);
+            outline:1px solid var(--border-focus);
+            background:var(--bg-focus);
+            box-shadow:inset 0 0 8px var(--glow-red);
         }
 
-        /* --- 7. Bottom Bar --- */
+        /* Tag chips in table */
+        .row-tags { display:flex;flex-wrap:wrap;gap:3px; }
+        .row-tag {
+            background:var(--tag-bg);
+            border:1px solid var(--tag-border);
+            color:var(--tag-text);
+            font-size:9px;padding:1px 5px;
+            text-transform:lowercase;
+            cursor:pointer;letter-spacing:.3px;
+        }
+        .row-tag:hover { background:var(--tag-active-bg);color:var(--tag-active-text); }
+
+        /* Tag edit overlay */
+        #tag-edit-overlay {
+            display:none;
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,.7);z-index:500;
+            align-items:center;justify-content:center;
+        }
+        #tag-edit-overlay.visible { display:flex; }
+        #tag-edit-box {
+            background:var(--bg-header);
+            border:1px solid var(--border);
+            box-shadow:0 0 30px var(--glow);
+            padding:1.2rem;
+            min-width:340px;
+            max-width:90vw;
+            display:flex;flex-direction:column;gap:.8rem;
+        }
+        #tag-edit-box h3 {
+            font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--text);
+            border-bottom:1px solid var(--border-dim);padding-bottom:.5rem;
+        }
+        #tag-edit-input {
+            width:100%;padding:8px 10px;
+            background:var(--bg-input);color:var(--text-data);
+            border:1px solid var(--border-dim);
+            font-size:13px;font-family:var(--font);
+        }
+        #tag-edit-input:focus { outline:none;border-color:var(--border-focus); }
+        #tag-edit-existing {
+            display:flex;flex-wrap:wrap;gap:4px;
+        }
+        #tag-edit-existing-label {
+            font-size:9px;text-transform:uppercase;letter-spacing:1px;
+            color:var(--text-dim);width:100%;
+        }
+        #tag-edit-actions {
+            display:flex;gap:.5rem;justify-content:flex-end;
+        }
+        #tag-edit-actions button {
+            background:var(--bg-btn);color:var(--text);
+            border:1px solid var(--border-dim);
+            font-family:var(--font);font-size:11px;
+            text-transform:uppercase;letter-spacing:1px;
+            padding:6px 12px;cursor:pointer;
+        }
+        #tag-edit-actions button:hover { border-color:var(--border);box-shadow:0 0 8px var(--glow); }
+        #tag-edit-save {
+            background:var(--bg-accent) !important;
+            color:var(--text-accent) !important;
+            border-color:var(--border) !important;
+        }
+
+        /* --- 9. Empty State --- */
+        #empty-state {
+            display:none;
+            flex-direction:column;
+            align-items:center;justify-content:center;
+            padding:2.5rem;color:var(--text-dim);text-align:center;
+        }
+        #empty-state.visible { display:flex; }
+        #empty-state pre { font-size:9px;line-height:1.3;margin-bottom:.8rem; }
+        #empty-state p { font-size:11px;text-transform:uppercase;letter-spacing:2px; }
+        .loading-dots::after {
+            content:'';animation:dots 1.5s steps(4,end) infinite;
+        }
+
+        /* --- 10. Bottom Bar --- */
         #bottom-bar {
-            padding: 0.75rem 1rem;
-            border-top: 1px solid var(--border-main);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: var(--bg-main);
+            padding:.5rem .75rem;
+            border-top:1px solid var(--border);
+            display:flex;justify-content:space-between;align-items:center;
+            background:var(--bg-header);
+            flex-wrap:wrap;gap:.3rem;
         }
+        #bottom-left { display:flex;gap:6px;flex-wrap:wrap; }
 
-        #bottom-bar-left {
-            display: flex;
-            gap: 8px;
+        #status {
+            font-size:11px;color:var(--text-dim);
+            text-transform:uppercase;letter-spacing:2px;
         }
+        #status::before { content:'[ '; }
+        #status::after  { content:' ]'; }
+        #item-count { font-weight:700;font-size:13px;color:var(--text);animation:glow-pulse 2s ease-in-out infinite; }
 
-        #status-bar {
-            font-size: 0.9rem;
-            color: var(--text-accent);
-        }
-        
-        #item-count {
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        /* --- 8. Buttons --- */
+        /* --- 11. Generic Buttons --- */
         button {
-            padding: 8px 14px;
-            background-color: var(--bg-btn);
-            color: var(--text-btn);
-            border: 1px solid var(--border-main);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: var(--font-size);
-            font-weight: 500;
+            padding:7px 12px;
+            background:var(--bg-btn);color:var(--text);
+            border:1px solid var(--border-dim);
+            cursor:pointer;font-size:11px;font-family:var(--font);
+            text-transform:uppercase;letter-spacing:1px;
+            transition:border-color .15s,box-shadow .15s,background .15s;
+            position:relative;overflow:hidden;
         }
-        
         button:hover {
-            background-color: var(--bg-btn-hover);
+            background:var(--bg-btn-hover);border-color:var(--border);
+            box-shadow:0 0 10px var(--glow);text-shadow:0 0 8px var(--glow);
         }
+        button::after {
+            content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+            background:linear-gradient(90deg,transparent,rgba(0,255,65,.15),transparent);
+            transition:left .4s ease;
+        }
+        button:hover::after { left:100%; }
 
-        #add-btn {
-            background-color: var(--bg-btn-accent);
-            color: var(--text-btn-accent);
-            border-color: var(--border-btn-accent);
-            font-weight: 600;
+        /* --- 12. Toast --- */
+        #toasts {
+            position:fixed;bottom:16px;right:16px;z-index:2000;
         }
-        
-        #add-btn:hover {
-            background-color: var(--bg-btn-accent-hover);
+        .toast {
+            background:var(--bg-header);border:1px solid var(--border);
+            color:var(--text);padding:10px 16px;margin-top:8px;
+            font-size:11px;text-transform:uppercase;letter-spacing:1px;
+            box-shadow:0 0 16px var(--glow);
+            animation:fadein .25s ease, fadeout .3s ease 2.7s forwards;
         }
-
-        /* --- 9. Utility Classes --- */
-        body.location-disabled .location-column,
-        body.location-disabled #location-input-row {
-            display: none;
-        }
-        
-        /* Adjust column widths when location is disabled */
-        body.location-disabled th:nth-child(1) { width: 40%; }
-        body.location-disabled th:nth-child(3) { width: 60%; }
+        .toast::before { content:'> ';color:var(--text-dim); }
+        .toast.err { border-color:var(--text-err);color:var(--text-err);box-shadow:0 0 16px var(--glow-red); }
 
     </style>
 </head>
 <body>
 
-    <div id="app-container">
+<div id="app">
 
-        <nav class="menu-bar">
-            <div class="menu-dropdown" tabindex="0">
-                <button>File</button>
-                <div class="menu-content">
-                    <button id="menu-load">Load (JSON/CSV)...</button>
-                    <button id="menu-save-json">Save as JSON...</button>
-                    <button id="menu-export-csv">Export as CSV...</button>
-                </div>
+    <!-- Menu Bar -->
+    <nav id="menu-bar">
+        <div class="menu-drop" tabindex="0">
+            <button>File</button>
+            <div class="menu-panel">
+                <button id="m-load">Load (JSON / CSV)</button>
+                <button id="m-save-json">Save as JSON</button>
+                <button id="m-export-csv">Export as CSV</button>
             </div>
-            <div class="menu-dropdown" tabindex="0">
-                <button>Options</button>
-                <div class="menu-content">
-                    <button id="menu-toggle-theme">Toggle Theme</button>
-                    <button id="menu-toggle-location">Toggle Location Field</button>
-                </div>
+        </div>
+        <div class="menu-drop" tabindex="0">
+            <button>Edit</button>
+            <div class="menu-panel">
+                <button id="m-select-all">Select All</button>
+                <button id="m-deselect">Deselect All</button>
+                <button id="m-clear">Clear All Data</button>
             </div>
-        </nav>
-        <input type="file" id="load-file-input" accept=".json,.csv" style="display:none;">
+        </div>
+        <div id="idx-group">
+            <label for="idx-name">Index:</label>
+            <input type="text" id="idx-name" placeholder="index name...">
+        </div>
+    </nav>
 
-        <section id="input-section">
-            <div class="input-group">
-                <label for="subject-input">Subject:</label>
-                <input type="text" id="subject-input" placeholder="The What (Required)">
-            </div>
-            
-            <div id="location-input-row">
-                <label for="location-input">Location:</label>
-                <input type="text" id="location-input" placeholder="Page:Book number, URL, etc.">
-                <input type="checkbox" id="location-toggle" checked>
-                <label for="location-toggle">Enabled</label>
-            </div>
+    <input type="file" id="file-input" accept=".json,.csv" style="display:none">
 
-            <div id="description-input-row" class="input-group">
-                <label for="description-input">Description:</label>
-                <textarea id="description-input" placeholder="The Definition, etc."></textarea>
-            </div>
-            
-            <div id="notes-input-row" class="input-group">
-                <label for="notes-input">Notes:</label>
-                <textarea id="notes-input" placeholder="Add notes for this index..."></textarea>
-            </div>
-
-            <button id="add-btn">Add Item</button>
-        </section>
-
-        <section id="search-section">
-            <label for="search-input">Search:</label>
-            <input type="text" id="search-input" placeholder="Type to filter items...">
-        </section>
-
-        <section id="table-section">
-            <table>
-                <thead>
-                    <tr>
-                        <th data-column="subject" class="sort-asc">Subject</th>
-                        <th data-column="location" class="location-column">Location</th>
-                        <th data-column="description">Description</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    </tbody>
-            </table>
-        </section>
-
-        <section id="bottom-bar">
-            <div id="bottom-bar-left">
-                <button id="remove-btn">Remove Selected</button>
-                <button id="export-csv-btn">Export CSV</button>
-                <button id="save-json-btn">Save as JSON</button>
-            </div>
-            <div id="status-bar">
-                RECORDS: <span id="item-count">0</span>
-            </div>
-        </section>
+    <!-- Form Toggle -->
+    <div id="form-toggle-bar" title="Toggle input form (Ctrl+D)">
+        <span id="form-toggle-label">// New Entry</span>
+        <span id="form-toggle-icon">▼</span>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+    <!-- Input Form -->
+    <section id="input-form">
+        <div class="fg">
+            <label for="sub-input">Subject</label>
+            <input type="text" id="sub-input" placeholder="subject identifier...">
+        </div>
+        <div class="fg">
+            <label for="sup-input">Supplement</label>
+            <input type="text" id="sup-input" placeholder="reference data...">
+        </div>
+        <div class="fg full">
+            <label for="desc-input">Desc</label>
+            <textarea id="desc-input" placeholder="data payload..."></textarea>
+        </div>
+        <div id="tags-area">
+            <div id="tags-row">
+                <label for="tags-input">Tags</label>
+                <input type="text" id="tags-input" placeholder="comma-separated tags...">
+            </div>
+            <div id="existing-tags-row"></div>
+        </div>
+        <div class="fg full center">
+            <label for="notes-input">Notes</label>
+            <textarea id="notes-input" placeholder="index notes..."></textarea>
+        </div>
+        <button id="add-btn">[ + Add Entry ]</button>
+    </section>
 
-            // --- 1. Global State ---
-            /** @type {{id: number, subject: string, location: string, description: string}[]} */
-            let items = [];
-            let notes = "";
-            let locationEnabled = true;
-            let currentSort = { column: 'subject', order: 'asc' };
-            let nextId = 0;
-            let lastSelectedRow = null;
+    <!-- Filter Bar -->
+    <div id="filter-bar">
+        <div id="search-row">
+            <label for="search-input">Search</label>
+            <input type="text" id="search-input" placeholder="search query...">
+        </div>
+        <div id="tag-filter-row" class="empty"></div>
+    </div>
 
-            // --- 2. DOM Elements ---
-            const $ = (selector) => document.querySelector(selector);
-            const $$ = (selector) => document.querySelectorAll(selector);
+    <!-- Table -->
+    <div id="table-wrap">
+        <div id="empty-state">
+            <pre>
+  ╔═══════════════════════════════════╗
+  ║   NO DATA RECORDS FOUND          ║
+  ║                                   ║
+  ║   > Add entries above             ║
+  ║   > Or load an existing file      ║
+  ╚═══════════════════════════════════╝</pre>
+            <p>Awaiting input<span class="loading-dots"></span></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th data-col="subject" class="sort-asc">Subject</th>
+                    <th data-col="tags" data-nosort>Tags</th>
+                    <th data-col="supplement">Supplement</th>
+                    <th data-col="description">Description</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
 
-            const tableBody = $('#table-body');
-            const itemCount = $('#item-count');
-            const searchInput = $('#search-input');
-            const subjectInput = $('#subject-input');
-            const locationInput = $('#location-input');
-            const descriptionInput = $('#description-input');
-            const notesInput = $('#notes-input');
-            const locationToggle = $('#location-toggle');
-            const loadFileInput = $('#load-file-input');
+    <!-- Bottom Bar -->
+    <div id="bottom-bar">
+        <div id="bottom-left">
+            <button id="del-btn">[ Delete ]</button>
+            <button id="save-btn">[ Save JSON ]</button>
+            <button id="csv-btn">[ Export CSV ]</button>
+        </div>
+        <div id="status">Records: <span id="item-count">0</span></div>
+    </div>
 
-            // --- 3. Core Functions ---
+</div>
 
-            /**
-             * Debounce function to limit how often a function is called.
-             * @param {Function} func - The function to debounce.
-             * @param {number} delay - The delay in milliseconds.
-             */
-            const debounce = (func, delay) => {
-                let timeoutId;
-                return (...args) => {
-                    clearTimeout(timeoutId);
-                    timeoutId = setTimeout(() => {
-                        func.apply(this, args);
-                    }, delay);
-                };
-            };
-            
-            /**
-             * Renders the items array into the HTML table.
-             * Applies current filter and sort.
-             */
-            const renderTable = () => {
-                const filterTerms = searchInput.value.toLowerCase().split(' ').filter(Boolean);
-                
-                // 1. Filter
-                const filteredItems = items.filter(item => {
-                    const searchCorpus = [
-                        item.subject.toLowerCase(),
-                        item.location.toLowerCase(),
-                        item.description.toLowerCase()
-                    ].join(' ');
-                    
-                    return filterTerms.every(term => searchCorpus.includes(term));
-                });
+<!-- Tag Edit Overlay -->
+<div id="tag-edit-overlay">
+    <div id="tag-edit-box">
+        <h3>// Edit Tags</h3>
+        <input type="text" id="tag-edit-input" placeholder="comma-separated tags...">
+        <div id="tag-edit-existing">
+            <span id="tag-edit-existing-label">Existing tags (click to add):</span>
+        </div>
+        <div id="tag-edit-actions">
+            <button id="tag-edit-cancel">Cancel</button>
+            <button id="tag-edit-save" class="tag-edit-save">Apply</button>
+        </div>
+    </div>
+</div>
 
-                // 2. Sort
-                filteredItems.sort((a, b) => {
-                    const valA = a[currentSort.column].toLowerCase();
-                    const valB = b[currentSort.column].toLowerCase();
-                    
-                    if (valA < valB) return currentSort.order === 'asc' ? -1 : 1;
-                    if (valA > valB) return currentSort.order === 'asc' ? 1 : -1;
-                    return 0;
-                });
+<div id="toasts"></div>
 
-                // 3. Render
-                tableBody.innerHTML = '';
-                const fragment = document.createDocumentFragment();
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-                for (const item of filteredItems) {
-                    const tr = document.createElement('tr');
-                    tr.dataset.id = item.id;
-                    
-                    // Keep track of which rows are selected
-                    if (item.selected) {
-                        tr.classList.add('selected');
-                    }
-                    
-                    // Subject
-                    const tdSubject = document.createElement('td');
-                    tdSubject.innerText = item.subject;
-                    tdSubject.dataset.column = 'subject';
-                    tdSubject.setAttribute('contenteditable', 'true');
-                    tr.appendChild(tdSubject);
-                    
-                    // Location
-                    const tdLocation = document.createElement('td');
-                    tdLocation.innerText = item.location;
-                    tdLocation.dataset.column = 'location';
-                    tdLocation.classList.add('location-column');
-                    tdLocation.setAttribute('contenteditable', 'true');
-                    tr.appendChild(tdLocation);
-                    
-                    // Description
-                    const tdDescription = document.createElement('td');
-                    tdDescription.innerText = item.description;
-                    tdDescription.dataset.column = 'description';
-                    tdDescription.setAttribute('contenteditable', 'true');
-                    tr.appendChild(tdDescription);
-                    
-                    fragment.appendChild(tr);
-                }
-                
-                tableBody.appendChild(fragment);
+    // ─── State ───────────────────────────────────────────────────────────────
+    let items = [];  // {id, subject, supplement, description, tags:[], color, selected}
+    let notes = "";
+    let nextId = 0;
+    let lastSelRow = null;
+    let currentSort = { col: 'subject', order: 'asc' };
+    let activeTagFilters = new Set();
+    let formVisible = true;
 
-                // 4. Update count
-                if (filterTerms.length > 0) {
-                    itemCount.textContent = `${filteredItems.length} of ${items.length}`;
-                } else {
-                    itemCount.textContent = items.length;
-                }
-            };
-            
-            /**
-             * Adds a new item from the input fields to the state.
-             */
-            const addItem = () => {
-                const subject = subjectInput.value.trim();
-                if (!subject) {
-                    alert('Subject is a required field.');
-                    subjectInput.focus();
-                    return;
-                }
-                
-                const location = locationEnabled ? locationInput.value.trim() : "";
-                const description = descriptionInput.value.trim();
-                
-                items.push({
-                    id: nextId++,
-                    subject,
-                    location,
-                    description,
-                    selected: false
-                });
-                
-                // Clear inputs
-                subjectInput.value = '';
-                locationInput.value = '';
-                descriptionInput.value = '';
-                
-                renderTable();
-                subjectInput.focus();
-            };
+    // Tag edit state
+    let tagEditItemId = null;
 
-            /**
-             * Removes all selected items from the state.
-             */
-            const removeSelectedItems = () => {
-                const selectedIds = new Set(items.filter(i => i.selected).map(i => i.id));
-                if (selectedIds.size === 0) {
-                    alert('No items selected to remove.');
-                    return;
-                }
-                
-                items = items.filter(item => !selectedIds.has(item.id));
-                lastSelectedRow = null;
-                renderTable();
-            };
+    // ─── DOM ─────────────────────────────────────────────────────────────────
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
 
-            /**
-             * Toggles the visibility and state of the Location field.
-             * @param {boolean} isEnabled - The new state.
-             */
-            const toggleLocation = (isEnabled) => {
-                locationEnabled = isEnabled;
-                locationToggle.checked = isEnabled;
-                locationInput.disabled = !isEnabled;
-                document.body.classList.toggle('location-disabled', !isEnabled);
-            };
+    const tbody       = $('#tbody');
+    const itemCount   = $('#item-count');
+    const searchInput = $('#search-input');
+    const subInput    = $('#sub-input');
+    const supInput    = $('#sup-input');
+    const descInput   = $('#desc-input');
+    const tagsInput   = $('#tags-input');
+    const notesInput  = $('#notes-input');
+    const idxName     = $('#idx-name');
+    const fileInput   = $('#file-input');
+    const emptyState  = $('#empty-state');
+    const toasts      = $('#toasts');
+    const existTagRow = $('#existing-tags-row');
+    const tagFilterRow= $('#tag-filter-row');
+    const inputForm   = $('#input-form');
+    const toggleIcon  = $('#form-toggle-icon');
+    const tagOverlay  = $('#tag-edit-overlay');
+    const tagEditInput= $('#tag-edit-input');
+    const tagEditExist= $('#tag-edit-existing');
 
-            /**
-             * Toggles the dark mode class on the body.
-             */
-            const toggleTheme = () => {
-                document.body.classList.toggle('dark-mode');
-            };
+    // ─── Utilities ───────────────────────────────────────────────────────────
 
-            /**
-             * Handles a click on a table header to sort.
-             * @param {string} columnKey - The column to sort by.
-             */
-            const handleSort = (columnKey) => {
-                // Update sort state
-                if (currentSort.column === columnKey) {
-                    currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort.column = columnKey;
-                    currentSort.order = 'asc';
-                }
-                
-                // Update header classes
-                $$('thead th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
-                const header = $(`thead th[data-column="${columnKey}"]`);
-                if (header) {
-                    header.classList.add(currentSort.order === 'asc' ? 'sort-asc' : 'sort-desc');
-                }
-                
-                renderTable();
-            };
+    const esc = str => {
+        if (typeof str !== 'string') return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    };
 
-            /**
-             * Triggers a file download.
-             * @param {string} content - The file content.
-             * @param {string} fileName - The name of the file.
-             * @param {string} mimeType - The MIME type.
-             */
-            const triggerDownload = (content, fileName, mimeType) => {
-                const blob = new Blob([content], { type: mimeType });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-            };
+    const clean = v => (v == null ? '' : String(v).trim());
 
-            /**
-             * Exports the current items to a JSON file.
-             */
-            const exportJson = () => {
-                // Create a data structure matching the Python app's save format
-                const dataToSave = {
-                    index_name: "MasterIQ_Web_Export",
-                    note: notesInput.value,
-                    location_enabled: locationEnabled,
-                    // Strip internal 'id' and 'selected' fields before saving
-                    items: items.map(({ subject, location, description }) => ({
-                        subject,
-                        location,
-                        description
-                    }))
-                };
-                
-                const jsonContent = JSON.stringify(dataToSave, null, 2);
-                triggerDownload(jsonContent, 'MIQ_Index.json', 'application/json');
-            };
+    const parseTags = str =>
+        str.split(',')
+           .map(t => t.trim().toLowerCase())
+           .filter(Boolean)
+           .filter((t, i, a) => a.indexOf(t) === i);
 
-            /**
-             * Exports the current items to a CSV file.
-             */
-            const exportCsv = () => {
-                const quote = (str) => `"${(str || "").replace(/"/g, '""')}"`;
-                let headers, rows;
+    const getIdxName = () => {
+        const raw = clean(idxName.value);
+        return raw || 'M.MINDMAP_Export';
+    };
 
-                if (locationEnabled) {
-                    headers = ['Subject', 'Location', 'Description'];
-                    rows = items.map(item => 
-                        [quote(item.subject), quote(item.location), quote(item.description)].join(',')
-                    );
-                } else {
-                    headers = ['Subject', 'Description'];
-                    rows = items.map(item => 
-                        [quote(item.subject), quote(item.description)].join(',')
-                    );
-                }
-                
-                const csvContent = [headers.join(','), ...rows].join('\n');
-                triggerDownload(csvContent, 'MIQ_Index.csv', 'text/csv;charset=utf-8;');
-            };
+    const getIdxNameFile = () =>
+        getIdxName().replace(/[^a-zA-Z0-9_\-\s]/g,'_').replace(/\s+/g,'_');
 
-            /**
-             * Handles the file input change event to load a file.
-             * @param {Event} e - The file input event.
-             */
-            const loadFromFile = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
+    const toast = (msg, type='') => {
+        const t = document.createElement('div');
+        t.className = 'toast' + (type ? ' ' + type : '');
+        t.textContent = msg;
+        toasts.appendChild(t);
+        setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 3000);
+    };
 
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const content = event.target.result;
-                    try {
-                        if (file.name.endsWith('.json')) {
-                            parseJson(content);
-                        } else if (file.name.endsWith('.csv')) {
-                            parseCsv(content);
-                        } else {
-                            alert('Unsupported file type. Please select a .json or .csv file.');
-                        }
-                    } catch (err) {
-                        alert(`Error parsing file: ${err.message}`);
-                    }
-                    // Reset file input to allow loading the same file again
-                    loadFileInput.value = null;
-                };
-                reader.onerror = () => {
-                    alert('Error reading file.');
-                };
-                reader.readAsText(file);
-            };
+    const debounce = (fn, ms) => {
+        let id;
+        return (...a) => { clearTimeout(id); id = setTimeout(() => fn(...a), ms); };
+    };
 
-            /**
-             * Parses loaded JSON content into the app state.
-             * @param {string} content - The JSON string.
-             */
-            const parseJson = (content) => {
-                const loadedData = JSON.parse(content);
-                
-                if (!loadedData.items || !Array.isArray(loadedData.items)) {
-                    throw new Error('Invalid JSON format. "items" array is missing.');
-                }
-                
-                items = loadedData.items.map((item) => ({
-                    id: nextId++,
-                    subject: item.subject || "",
-                    location: item.location || "",
-                    description: item.description || "",
-                    selected: false
-                }));
-                
-                notes = loadedData.note || "";
-                notesInput.value = notes;
-                
-                // Default to true if missing
-                const isEnabled = loadedData.location_enabled === false ? false : true;
-                toggleLocation(isEnabled);
-                
-                renderTable();
-            };
-            
-            /**
-             * Robust CSV parser that respects quoted fields containing commas.
-             * @param {string} content - The CSV string.
-             */
-            const parseCsv = (content) => {
-                const lines = content.replace(/\r\n/g, '\n').split('\n');
-                if (lines.length === 0) return;
+    // ─── Tag Helpers ─────────────────────────────────────────────────────────
 
-                const headers = lines[0].toLowerCase().split(',');
-                const subjectIndex = headers.indexOf('subject');
-                const locationIndex = headers.indexOf('location');
-                const descriptionIndex = headers.indexOf('description');
+    const getAllTags = () => {
+        const set = new Set();
+        items.forEach(i => (i.tags || []).forEach(t => set.add(t)));
+        return [...set].sort();
+    };
 
-                if (subjectIndex === -1 || descriptionIndex === -1) {
-                    throw new Error('Invalid CSV. Must contain "Subject" and "Description" headers.');
-                }
+    // ─── Render Tag Filter Bar ────────────────────────────────────────────────
 
-                // If location header exists, enable it. Otherwise, disable it.
-                toggleLocation(locationIndex !== -1);
-                
-                // Regex to split CSV row while respecting quotes
-                // Matches commas that are not inside a pair of double-quotes
-                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/g;
+    const renderTagFilter = () => {
+        const all = getAllTags();
+        while (tagFilterRow.firstChild) tagFilterRow.removeChild(tagFilterRow.firstChild);
 
-                const newItems = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (lines[i].trim() === "") continue;
+        if (all.length === 0) {
+            tagFilterRow.classList.add('empty');
+            return;
+        }
+        tagFilterRow.classList.remove('empty');
 
-                    const values = lines[i].split(regex);
-                    
-                    // Helper function to unquote and unescape
-                    const unquote = (str) => {
-                        if (!str) return "";
-                        let val = str.trim();
-                        // Remove surrounding quotes, if they exist
-                        if (val.startsWith('"') && val.endsWith('"')) {
-                            val = val.substring(1, val.length - 1);
-                        }
-                        // Unescape double-double-quotes back to a single double-quote
-                        return val.replace(/""/g, '"');
-                    };
-
-                    newItems.push({
-                        id: nextId++,
-                        subject: unquote(values[subjectIndex]),
-                        location: (locationIndex !== -1) ? unquote(values[locationIndex]) : "",
-                        description: unquote(values[descriptionIndex]),
-                        selected: false
-                    });
-                }
-                
-                items = newItems;
-                renderTable();
-            };
-
-            // --- 4. Event Listeners ---
-            
-            // Add Button
-            $('#add-btn').addEventListener('click', addItem);
-            
-            // Allow "Enter" in Subject to jump to Location (or Description)
-            subjectInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (locationEnabled) {
-                        locationInput.focus();
-                    } else {
-                        descriptionInput.focus();
-                    }
-                }
-            });
-
-            // Allow "Enter" in Location to jump to Description
-            locationInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    descriptionInput.focus();
-                }
-            });
-            
-            // Allow "Enter" in Description to jump to Add Button
-            descriptionInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
-                    e.preventDefault();
-                    $('#add-btn').focus();
-                }
-            });
-
-            // Remove Button
-            $('#remove-btn').addEventListener('click', removeSelectedItems);
-            
-            // Search (Debounced)
-            searchInput.addEventListener('input', debounce(renderTable, 250));
-
-            // Location Toggle
-            locationToggle.addEventListener('change', (e) => toggleLocation(e.target.checked));
-            
-            // Notes Save
-            notesInput.addEventListener('change', (e) => notes = e.target.value);
-
-            // Menu Bar
-            $('#menu-load').addEventListener('click', () => loadFileInput.click());
-            loadFileInput.addEventListener('change', loadFromFile);
-            
-            $('#menu-save-json').addEventListener('click', exportJson);
-            $('#menu-export-csv').addEventListener('click', exportCsv);
-            $('#save-json-btn').addEventListener('click', exportJson);
-            $('#export-csv-btn').addEventListener('click', exportCsv);
-            
-            $('#menu-toggle-theme').addEventListener('click', toggleTheme);
-            $('#menu-toggle-location').addEventListener('click', () => locationToggle.click());
-
-            // Table: Sort
-            $('thead').addEventListener('click', (e) => {
-                const header = e.target.closest('th');
-                if (header && header.dataset.column) {
-                    handleSort(header.dataset.column);
-                }
-            });
-
-            // Table: Edit
-            tableBody.addEventListener('input', (e) => {
-                const td = e.target.closest('td[contenteditable="true"]');
-                if (!td) return;
-                
-                const tr = td.closest('tr');
-                const id = parseInt(tr.dataset.id, 10);
-                const column = td.dataset.column;
-                const newValue = td.innerText; // Use innerText to handle newlines
-                
-                const item = items.find(i => i.id === id);
-                if (item && item[column] !== newValue) {
-                    item[column] = newValue;
-                    // Note: This live-updates the model. No "save" button needed.
-                }
-            });
-            
-            // Table: Select
-            tableBody.addEventListener('click', (e) => {
-                const tr = e.target.closest('tr');
-                if (!tr) return;
-                
-                const id = parseInt(tr.dataset.id, 10);
-                const item = items.find(i => i.id === id);
-                if (!item) return;
-
-                const isCtrlPressed = e.ctrlKey || e.metaKey;
-                const isShiftPressed = e.shiftKey;
-
-                if (isShiftPressed && lastSelectedRow) {
-                    // Shift-click range selection
-                    const rows = Array.from(tableBody.querySelectorAll('tr'));
-                    const lastId = parseInt(lastSelectedRow.dataset.id, 10);
-                    const lastIndex = rows.findIndex(row => parseInt(row.dataset.id, 10) === lastId);
-                    const currentIndex = rows.findIndex(row => parseInt(row.dataset.id, 10) === id);
-                    
-                    const start = Math.min(lastIndex, currentIndex);
-                    const end = Math.max(lastIndex, currentIndex);
-                    
-                    // First, de-select all (unless Ctrl is also held)
-                    if (!isCtrlPressed) {
-                        items.forEach(i => i.selected = false);
-                        $$('#table-body tr.selected').forEach(row => row.classList.remove('selected'));
-                    }
-                    
-                    // Select items in range
-                    for (let i = start; i <= end; i++) {
-                        const rowToSelect = rows[i];
-                        const itemToSelect = items.find(it => it.id === parseInt(rowToSelect.dataset.id, 10));
-                        if (itemToSelect) {
-                            itemToSelect.selected = true;
-                            rowToSelect.classList.add('selected');
-                        }
-                    }
-
-                } else if (isCtrlPressed) {
-                    // Ctrl-click toggle selection
-                    item.selected = !item.selected;
-                    tr.classList.toggle('selected', item.selected);
-                    lastSelectedRow = tr;
-                    
-                } else {
-                    // Simple click: select only this one
-                    items.forEach(i => i.selected = false);
-                    $$('#table-body tr.selected').forEach(row => row.classList.remove('selected'));
-                    
-                    item.selected = true;
-                    tr.classList.add('selected');
-                    lastSelectedRow = tr;
-                }
-            });
-            
-            // Global keydown for delete
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Delete' || e.key === 'Backspace') {
-                    // Don't delete if user is editing text
-                    if (document.activeElement.tagName === 'INPUT' || 
-                        document.activeElement.tagName === 'TEXTAREA' ||
-                        document.activeElement.isContentEditable) {
-                        return;
-                    }
-                    
-                    e.preventDefault();
-                    removeSelectedItems();
-                }
-            });
-
-            // --- 5. Initial Load ---
-            renderTable(); // Render empty table on load
+        // ALL button
+        const allBtn = document.createElement('button');
+        allBtn.className = 'tfilter all-btn' + (activeTagFilters.size === 0 ? ' active' : '');
+        allBtn.textContent = 'All';
+        allBtn.addEventListener('click', () => {
+            activeTagFilters.clear();
+            renderTagFilter();
+            renderTable();
         });
-    </script>
+        tagFilterRow.appendChild(allBtn);
+
+        all.forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = 'tfilter' + (activeTagFilters.has(tag) ? ' active' : '');
+            btn.textContent = tag;
+            btn.addEventListener('click', () => {
+                if (activeTagFilters.has(tag)) activeTagFilters.delete(tag);
+                else activeTagFilters.add(tag);
+                renderTagFilter();
+                renderTable();
+            });
+            tagFilterRow.appendChild(btn);
+        });
+    };
+
+    // ─── Render Existing Tags in Form ────────────────────────────────────────
+
+    const renderExistingTags = () => {
+        while (existTagRow.firstChild) existTagRow.removeChild(existTagRow.firstChild);
+        const all = getAllTags();
+        all.forEach(tag => {
+            const chip = document.createElement('button');
+            chip.className = 'etag';
+            chip.textContent = tag;
+            chip.type = 'button';
+            chip.title = 'Click to add tag: ' + tag;
+            chip.addEventListener('click', () => {
+                const cur = parseTags(tagsInput.value);
+                if (!cur.includes(tag)) {
+                    tagsInput.value = cur.length ? cur.join(', ') + ', ' + tag : tag;
+                } else {
+                    // remove it
+                    tagsInput.value = cur.filter(t => t !== tag).join(', ');
+                }
+            });
+            existTagRow.appendChild(chip);
+        });
+    };
+
+    // ─── Render Table ─────────────────────────────────────────────────────────
+
+    const renderTable = () => {
+        const terms = clean(searchInput.value).toLowerCase().split(' ').filter(Boolean);
+        const tagFilter = activeTagFilters.size > 0 ? [...activeTagFilters] : null;
+
+        // Filter
+        let filtered = items.filter(item => {
+            // Text search
+            if (terms.length > 0) {
+                const corpus = [
+                    item.subject, item.supplement, item.description,
+                    (item.tags || []).join(' ')
+                ].join(' ').toLowerCase();
+                if (!terms.every(t => corpus.includes(t))) return false;
+            }
+            // Tag filter (AND)
+            if (tagFilter) {
+                const itags = item.tags || [];
+                if (!tagFilter.every(t => itags.includes(t))) return false;
+            }
+            return true;
+        });
+
+        // Sort (skip tags column)
+        if (currentSort.col !== 'tags') {
+            filtered.sort((a, b) => {
+                const va = (a[currentSort.col] || '').toLowerCase();
+                const vb = (b[currentSort.col] || '').toLowerCase();
+                if (va < vb) return currentSort.order === 'asc' ? -1 : 1;
+                if (va > vb) return currentSort.order === 'asc' ?  1 : -1;
+                return 0;
+            });
+        }
+
+        // Empty state
+        emptyState.classList.toggle('visible', items.length === 0);
+
+        // Render
+        while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+        const frag = document.createDocumentFragment();
+
+        for (const item of filtered) {
+            const tr = document.createElement('tr');
+            tr.dataset.id = item.id;
+            if (item.selected) tr.classList.add('selected');
+
+            // Subject
+            const tdSub = document.createElement('td');
+            tdSub.textContent = item.subject;
+            tdSub.dataset.col = 'subject';
+            tdSub.setAttribute('contenteditable', 'true');
+            tr.appendChild(tdSub);
+
+            // Tags (not contenteditable — use overlay)
+            const tdTags = document.createElement('td');
+            tdTags.dataset.col = 'tags';
+            const tagWrap = document.createElement('div');
+            tagWrap.className = 'row-tags';
+            (item.tags || []).forEach(tag => {
+                const chip = document.createElement('span');
+                chip.className = 'row-tag';
+                chip.textContent = tag;
+                chip.title = 'Click to filter by: ' + tag;
+                chip.addEventListener('click', e => {
+                    e.stopPropagation();
+                    if (activeTagFilters.has(tag)) activeTagFilters.delete(tag);
+                    else activeTagFilters.add(tag);
+                    renderTagFilter();
+                    renderTable();
+                });
+                tagWrap.appendChild(chip);
+            });
+            // Edit tags button
+            const editTagBtn = document.createElement('span');
+            editTagBtn.className = 'row-tag';
+            editTagBtn.textContent = (item.tags && item.tags.length > 0) ? '+' : '[tags]';
+            editTagBtn.title = 'Edit tags for this entry';
+            editTagBtn.style.borderStyle = 'dashed';
+            editTagBtn.style.opacity = '0.5';
+            editTagBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                openTagEdit(item.id);
+            });
+            tagWrap.appendChild(editTagBtn);
+            tdTags.appendChild(tagWrap);
+            tr.appendChild(tdTags);
+
+            // Supplement
+            const tdSup = document.createElement('td');
+            tdSup.textContent = item.supplement;
+            tdSup.dataset.col = 'supplement';
+            tdSup.setAttribute('contenteditable', 'true');
+            tr.appendChild(tdSup);
+
+            // Description
+            const tdDesc = document.createElement('td');
+            tdDesc.textContent = item.description;
+            tdDesc.dataset.col = 'description';
+            tdDesc.setAttribute('contenteditable', 'true');
+            tr.appendChild(tdDesc);
+
+            frag.appendChild(tr);
+        }
+
+        tbody.appendChild(frag);
+        itemCount.textContent = terms.length > 0 || activeTagFilters.size > 0
+            ? `${filtered.length} / ${items.length}`
+            : String(items.length);
+    };
+
+    // ─── Tag Edit Overlay ────────────────────────────────────────────────────
+
+    const openTagEdit = (itemId) => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+        tagEditItemId = itemId;
+        tagEditInput.value = (item.tags || []).join(', ');
+
+        // Existing tags
+        while (tagEditExist.firstChild) tagEditExist.removeChild(tagEditExist.firstChild);
+        const lbl = document.createElement('span');
+        lbl.id = 'tag-edit-existing-label';
+        lbl.textContent = 'All tags (click to toggle):';
+        tagEditExist.appendChild(lbl);
+
+        const all = getAllTags();
+        all.forEach(tag => {
+            const chip = document.createElement('button');
+            chip.className = 'etag';
+            chip.type = 'button';
+            chip.textContent = tag;
+            chip.addEventListener('click', () => {
+                const cur = parseTags(tagEditInput.value);
+                if (cur.includes(tag)) {
+                    tagEditInput.value = cur.filter(t => t !== tag).join(', ');
+                } else {
+                    tagEditInput.value = cur.length ? cur.join(', ') + ', ' + tag : tag;
+                }
+            });
+            tagEditExist.appendChild(chip);
+        });
+
+        tagOverlay.classList.add('visible');
+        tagEditInput.focus();
+    };
+
+    const closeTagEdit = (save) => {
+        if (save && tagEditItemId != null) {
+            const item = items.find(i => i.id === tagEditItemId);
+            if (item) {
+                item.tags = parseTags(tagEditInput.value);
+                renderTagFilter();
+                renderExistingTags();
+                renderTable();
+                toast('Tags updated');
+            }
+        }
+        tagOverlay.classList.remove('visible');
+        tagEditItemId = null;
+    };
+
+    // ─── Add Item ─────────────────────────────────────────────────────────────
+
+    const addItem = () => {
+        const subject = clean(subInput.value);
+        if (!subject) {
+            toast('Subject field required', 'err');
+            subInput.focus();
+            return;
+        }
+        items.push({
+            id: nextId++,
+            subject,
+            supplement: clean(supInput.value),
+            description: clean(descInput.value),
+            tags: parseTags(tagsInput.value),
+            color: null,
+            selected: false
+        });
+
+        subInput.value = '';
+        supInput.value = '';
+        descInput.value = '';
+        tagsInput.value = '';
+
+        renderTagFilter();
+        renderExistingTags();
+        renderTable();
+        toast('Entry added: ' + subject);
+        subInput.focus();
+    };
+
+    // ─── Delete ───────────────────────────────────────────────────────────────
+
+    const deleteSelected = () => {
+        const n = items.filter(i => i.selected).length;
+        if (n === 0) { toast('No entries selected', 'err'); return; }
+        items = items.filter(i => !i.selected);
+        lastSelRow = null;
+        renderTagFilter();
+        renderExistingTags();
+        renderTable();
+        toast(`Deleted ${n} entr${n === 1 ? 'y' : 'ies'}`);
+    };
+
+    // ─── Sort ─────────────────────────────────────────────────────────────────
+
+    const handleSort = col => {
+        if (col === 'tags') return; // tags column not sortable
+        if (currentSort.col === col) currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+        else { currentSort.col = col; currentSort.order = 'asc'; }
+        $$('thead th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+        const th = $(`thead th[data-col="${col}"]`);
+        if (th) th.classList.add(currentSort.order === 'asc' ? 'sort-asc' : 'sort-desc');
+        renderTable();
+    };
+
+    // ─── Export ───────────────────────────────────────────────────────────────
+
+    const download = (content, name, mime) => {
+        if (!content) { toast('Nothing to export', 'err'); return; }
+        const safe = name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        try {
+            const blob = new Blob([content], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = safe; a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch(e) { toast('Download error', 'err'); }
+    };
+
+    const exportJson = () => {
+        if (items.length === 0) { toast('No data to export', 'err'); return; }
+        const payload = {
+            index_name: getIdxName(),
+            export_date: new Date().toISOString(),
+            note: clean(notesInput.value),
+            items: items.map(({ subject, supplement, description, tags, color }) => {
+                const obj = { subject: clean(subject), supplement: clean(supplement), description: clean(description) };
+                if (color) obj.color = color;
+                if (tags && tags.length > 0) obj.tags = tags;
+                return obj;
+            })
+        };
+        const date = new Date().toISOString().slice(0, 10);
+        download(JSON.stringify(payload, null, 2), `${getIdxNameFile()}_${date}.json`, 'application/json;charset=utf-8');
+        toast('JSON exported');
+    };
+
+    const escapeCsv = str => {
+        const s = clean(str);
+        if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r'))
+            return `"${s.replace(/"/g,'""')}"`;
+        return s;
+    };
+
+    const exportCsv = () => {
+        if (items.length === 0) { toast('No data to export', 'err'); return; }
+        const header = ['Subject', 'Supplement', 'Description', 'Tags'];
+        const rows = items.map(i => [
+            escapeCsv(i.subject),
+            escapeCsv(i.supplement),
+            escapeCsv(i.description),
+            escapeCsv((i.tags || []).join('; '))
+        ].join(','));
+        const BOM = '\uFEFF';
+        const csv = BOM + [header.join(','), ...rows].join('\r\n');
+        const date = new Date().toISOString().slice(0, 10);
+        download(csv, `${getIdxNameFile()}_${date}.csv`, 'text/csv;charset=utf-8');
+        toast('CSV exported');
+    };
+
+    // ─── Load ─────────────────────────────────────────────────────────────────
+
+    const loadFile = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 20 * 1024 * 1024) { toast('File too large (max 20MB)', 'err'); fileInput.value = ''; return; }
+
+        const name = file.name.toLowerCase();
+        const isJson = name.endsWith('.json');
+        const isCsv  = name.endsWith('.csv');
+        if (!isJson && !isCsv) { toast('Only JSON and CSV supported', 'err'); fileInput.value = ''; return; }
+
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                if (isJson) loadJson(ev.target.result);
+                else        loadCsv(ev.target.result);
+                toast(`Loaded: ${file.name}`);
+            } catch(err) {
+                toast('Parse error: ' + err.message, 'err');
+            }
+            fileInput.value = '';
+        };
+        reader.onerror = () => { toast('File read error', 'err'); fileInput.value = ''; };
+        reader.readAsText(file, 'UTF-8');
+    };
+
+    const loadJson = content => {
+        let data;
+        try { data = JSON.parse(content); } catch(e) { throw new Error('Invalid JSON'); }
+        if (!data || !Array.isArray(data.items)) throw new Error('Missing "items" array');
+
+        if (data.index_name) idxName.value = clean(data.index_name);
+        if (data.note != null) { notes = clean(data.note); notesInput.value = notes; }
+
+        items = data.items.map(it => ({
+            id: nextId++,
+            subject:     clean(it.subject),
+            supplement:  clean(it.supplement || it.location || ''),
+            description: clean(it.description),
+            tags:        Array.isArray(it.tags) ? it.tags.map(t => clean(t)).filter(Boolean) : [],
+            color:       it.color || null,
+            selected:    false
+        }));
+
+        renderTagFilter();
+        renderExistingTags();
+        renderTable();
+    };
+
+    const loadCsv = content => {
+        let s = content;
+        if (s.charCodeAt(0) === 0xFEFF) s = s.slice(1);
+        s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+        const parseRow = line => {
+            const res = []; let cur = ''; let inQ = false;
+            for (let i = 0; i < line.length; i++) {
+                const c = line[i], n = line[i+1];
+                if (inQ) {
+                    if (c==='"' && n==='"') { cur+='"'; i++; }
+                    else if (c==='"') inQ = false;
+                    else cur += c;
+                } else {
+                    if (c==='"') inQ = true;
+                    else if (c===',') { res.push(cur.trim()); cur=''; }
+                    else cur += c;
+                }
+            }
+            res.push(cur.trim());
+            return res;
+        };
+
+        const lines = s.split('\n').filter(l => l.trim() !== '');
+        if (lines.length === 0) throw new Error('Empty CSV');
+
+        const hdrs = parseRow(lines[0]).map(h => h.toLowerCase().replace(/^"|"$/g,''));
+        const si = hdrs.indexOf('subject');
+        const di = hdrs.indexOf('description');
+        if (si === -1 || di === -1) throw new Error('CSV must have Subject and Description columns');
+
+        const pi = hdrs.indexOf('supplement') !== -1 ? hdrs.indexOf('supplement') : hdrs.indexOf('location');
+        const ti = hdrs.indexOf('tags');
+
+        const newItems = [];
+        for (let i = 1; i < lines.length; i++) {
+            const v = parseRow(lines[i]);
+            if (!v.length || (v.length === 1 && v[0] === '')) continue;
+            newItems.push({
+                id: nextId++,
+                subject:     clean(v[si]),
+                supplement:  pi !== -1 ? clean(v[pi]) : '',
+                description: clean(v[di]),
+                tags:        ti !== -1 ? parseTags(v[ti].replace(/;/g, ',')) : [],
+                color:       null,
+                selected:    false
+            });
+        }
+        if (newItems.length === 0) throw new Error('No data rows found');
+        items = newItems;
+
+        renderTagFilter();
+        renderExistingTags();
+        renderTable();
+    };
+
+    // ─── Row Selection ────────────────────────────────────────────────────────
+
+    tbody.addEventListener('click', e => {
+        const td = e.target.closest('td');
+        if (!td) return;
+        if (td.dataset.col === 'tags') return; // handled by tag chips / edit btn
+        if (td.getAttribute('contenteditable') === 'true') return; // editing
+
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+        const id = parseInt(tr.dataset.id, 10);
+        if (isNaN(id)) return;
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+
+        const ctrl  = e.ctrlKey || e.metaKey;
+        const shift = e.shiftKey;
+
+        if (shift && lastSelRow) {
+            const rows = [...tbody.querySelectorAll('tr')];
+            const lastId   = parseInt(lastSelRow.dataset.id, 10);
+            const lastIdx  = rows.findIndex(r => parseInt(r.dataset.id,10) === lastId);
+            const curIdx   = rows.findIndex(r => parseInt(r.dataset.id,10) === id);
+            const lo = Math.min(lastIdx, curIdx), hi = Math.max(lastIdx, curIdx);
+            if (!ctrl) { items.forEach(i => i.selected = false); $$('#tbody tr.selected').forEach(r => r.classList.remove('selected')); }
+            for (let j = lo; j <= hi; j++) {
+                const rj = rows[j];
+                const ij = items.find(it => it.id === parseInt(rj.dataset.id,10));
+                if (ij) { ij.selected = true; rj.classList.add('selected'); }
+            }
+        } else if (ctrl) {
+            item.selected = !item.selected;
+            tr.classList.toggle('selected', item.selected);
+            lastSelRow = tr;
+        } else {
+            items.forEach(i => i.selected = false);
+            $$('#tbody tr.selected').forEach(r => r.classList.remove('selected'));
+            item.selected = true;
+            tr.classList.add('selected');
+            lastSelRow = tr;
+        }
+    });
+
+    // Inline edit sync
+    tbody.addEventListener('input', e => {
+        const td = e.target.closest('td[contenteditable="true"]');
+        if (!td) return;
+        const tr = td.closest('tr');
+        const id = parseInt(tr.dataset.id, 10);
+        const col = td.dataset.col;
+        const allowed = ['subject', 'supplement', 'description'];
+        if (!allowed.includes(col)) return;
+        const item = items.find(i => i.id === id);
+        if (item) item[col] = clean(td.textContent);
+    });
+
+    // ─── Form Toggle ──────────────────────────────────────────────────────────
+
+    const toggleForm = () => {
+        formVisible = !formVisible;
+        inputForm.classList.toggle('hidden', !formVisible);
+        toggleIcon.classList.toggle('collapsed', !formVisible);
+    };
+
+    $('#form-toggle-bar').addEventListener('click', toggleForm);
+
+    // ─── Event Wiring ─────────────────────────────────────────────────────────
+
+    $('#add-btn').addEventListener('click', addItem);
+
+    subInput.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); supInput.focus(); } });
+    supInput.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); descInput.focus(); } });
+    descInput.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); tagsInput.focus(); } });
+    tagsInput.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); addItem(); } });
+
+    $('#del-btn').addEventListener('click', deleteSelected);
+    $('#save-btn').addEventListener('click', exportJson);
+    $('#csv-btn').addEventListener('click', exportCsv);
+
+    $('#m-load').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', loadFile);
+    $('#m-save-json').addEventListener('click', exportJson);
+    $('#m-export-csv').addEventListener('click', exportCsv);
+
+    $('#m-select-all').addEventListener('click', () => {
+        items.forEach(i => i.selected = true);
+        renderTable();
+    });
+    $('#m-deselect').addEventListener('click', () => {
+        items.forEach(i => i.selected = false);
+        lastSelRow = null;
+        renderTable();
+    });
+    $('#m-clear').addEventListener('click', () => {
+        if (items.length === 0) { toast('No data to clear', 'err'); return; }
+        if (confirm('Delete all records?')) {
+            items = []; notes = ''; notesInput.value = ''; nextId = 0; lastSelRow = null;
+            activeTagFilters.clear();
+            renderTagFilter(); renderExistingTags(); renderTable();
+            toast('All data cleared');
+        }
+    });
+
+    searchInput.addEventListener('input', debounce(renderTable, 200));
+    notesInput.addEventListener('change', e => { notes = clean(e.target.value); });
+
+    $('thead').addEventListener('click', e => {
+        const th = e.target.closest('th');
+        if (th && th.dataset.col && !th.dataset.nosort) handleSort(th.dataset.col);
+    });
+
+    // Tag edit overlay
+    $('#tag-edit-cancel').addEventListener('click', () => closeTagEdit(false));
+    $('#tag-edit-save').addEventListener('click',   () => closeTagEdit(true));
+    tagOverlay.addEventListener('click', e => { if (e.target === tagOverlay) closeTagEdit(false); });
+    tagEditInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); closeTagEdit(true); }
+        if (e.key === 'Escape') closeTagEdit(false);
+    });
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        // Ctrl+D — toggle form
+        if (e.ctrlKey && e.key === 'd') { e.preventDefault(); toggleForm(); return; }
+
+        // Delete key — delete selected (when not editing)
+        if ((e.key === 'Delete' || e.key === 'Backspace') &&
+            !document.activeElement?.isContentEditable &&
+            document.activeElement?.tagName !== 'INPUT' &&
+            document.activeElement?.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            deleteSelected();
+        }
+    });
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+
+    renderTable();
+    renderTagFilter();
+    renderExistingTags();
+    toast('System online // v1.3');
+});
+</script>
 
 </body>
 </html>
