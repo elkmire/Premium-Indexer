@@ -47,6 +47,44 @@
             --tag-active-text: #0a0a0a;
         }
 
+        /* ===== LIGHT THEME ===== */
+        body.cyberpunk {
+            --bg:           #F5F0E8;
+            --bg-input:     #EDE8DC;
+            --bg-focus:     #FFFFFF;
+            --bg-header:    #E8E0CC;
+            --bg-btn:       #DDD5C0;
+            --bg-btn-hover: #CFC7B0;
+            --bg-accent:    #CC9900;
+            --bg-accent-hv: #AA7700;
+            --bg-hover-row: #EDE0C0;
+
+            --text:         #1A1400;
+            --text-dim:     #5C4A00;
+            --text-ph:      #B8A878;
+            --text-accent:  #FFFFFF;
+            --text-data:    #CC0033;
+            --text-sel:     #003388;
+            --text-err:     #CC0033;
+
+            --border:       #CC9900;
+            --border-dim:   #C8B870;
+            --border-focus: #CC0033;
+            --border-grid:  #D8CFA8;
+
+            --glow:         rgba(180,130,0,0.2);
+            --glow-red:     rgba(200,0,50,0.25);
+            --glow-cyan:    rgba(0,60,200,0.3);
+            --scanline:     rgba(150,110,0,0.015);
+
+            --tag-bg:       #F0E8C8;
+            --tag-border:   #CC9900;
+            --tag-text:     #5C3A00;
+            --tag-active-bg: #CC9900;
+            --tag-active-text: #FFFFFF;
+        }
+
+
         /* --- 2. Animations --- */
         @keyframes flicker {
             0%,100%{opacity:1} 93%{opacity:.85} 94%{opacity:1} 97%{opacity:.92} 98%{opacity:1}
@@ -618,6 +656,7 @@
                 <button id="m-select-all">Select All</button>
                 <button id="m-deselect">Deselect All</button>
                 <button id="m-clear">Clear All Data</button>
+                <button id="m-theme">Toggle Theme</button>
             </div>
         </div>
         <div id="idx-group">
@@ -736,6 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = { col: 'subject', order: 'asc' };
     let activeTagFilters = new Set();
     let formVisible = true;
+    let currentTheme = 'dark'; // 'dark' | 'light'
 
     // Tag edit state
     let tagEditItemId = null;
@@ -777,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const parseTags = str =>
         str.split(',')
-           .map(t => t.trim().toLowerCase())
+           .map(t => t.trim())
            .filter(Boolean)
            .filter((t, i, a) => a.indexOf(t) === i);
 
@@ -1319,6 +1359,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('#form-toggle-bar').addEventListener('click', toggleForm);
 
+    // ─── Theme Toggle ─────────────────────────────────────────────────────────
+
+    const cycleTheme = () => {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.body.classList.toggle('cyberpunk', currentTheme === 'light');
+        toast(`Theme: ${currentTheme === 'light' ? 'Light' : 'Dark'}`);
+    };
+
     // ─── Event Wiring ─────────────────────────────────────────────────────────
 
     $('#add-btn').addEventListener('click', addItem);
@@ -1346,6 +1394,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lastSelRow = null;
         renderTable();
     });
+    $('#m-theme').addEventListener('click', cycleTheme);
+
     $('#m-clear').addEventListener('click', () => {
         if (items.length === 0) { toast('No data to clear', 'err'); return; }
         if (confirm('Delete all records?')) {
